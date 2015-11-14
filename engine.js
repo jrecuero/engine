@@ -209,8 +209,58 @@ inheritKlass(GObject, Objeto);
  */
 function Evento(args) {
     GObject.apply(this, args);
+    this.steps = [];
+    this.conditions = [];
+
+    this.addStep = function(step) {
+        this.steps.push(step);
+    };
+
+    this.runAllSteps = function() {
+        for (var i = 0; i < this.steps.length; i++) {
+            /*
+            var result = this.steps[i].execute.call(this);
+            if (result) {
+                this.steps[i].processing.call(this, result);
+            }
+            */
+           var result = this.steps[i].execute().call(this.steps[i]);
+           if (result) {
+                this.steps[i].processing.call(this, result);
+           }
+        }
+    };
 }
 inheritKlass(GObject, Evento);
+
+/*
+function dialogStep(message) {
+    return function() {
+        console.log(message);
+    };
+}
+
+function promptStep(message) {
+    return function() {
+        return prompt(message);
+    };
+}
+*/
+
+var promptStep = {
+    message: undefined,
+    execute: function() { return function() { return prompt(this.message); }; },
+    processing: function(result) { console.log('result was ' + result); }
+};
+function setPromptStep(message) {
+    var _ = {
+        message: undefined,
+        execute: function() { return function() { return prompt(this.message); }; },
+        processing: function(result) { console.log('result was ' + result); }
+    };
+    _.message = message;
+    return _;
+}
 
 /**
  * Action class for any action used in the game.
@@ -224,14 +274,27 @@ function Action(args) {
 }
 inheritKlass(GObject, Action);
 
+function runEnableAction() {
+    console.log('enable-action call for ' + this.name + ' action');
+    this.active = true;
+}
+
 /**
- * Run particular action.
+ * Run particular action which disable the action.
  * @return {Action} Action instance
  */
-function runAction() {
+function runDisableAction() {
     console.log('action ' + this.name + ' has run');
     this.active = false;
+    setTimeout(runEnableAction.call(this), Math.floor(Math.random() * 10));
 }
 
 setInterval(function () { geng.run(); }, 1000);
+
+function test_on_work() {
+    var e1 = new Evento(['first evento']);
+    promptStep.message = "What is your name?";
+    e1.addStep(setPromptStep("Name?"));
+    e1.runAllSteps();
+}
 
