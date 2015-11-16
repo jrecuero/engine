@@ -1,3 +1,7 @@
+var PLAYER = "player";
+var ENEMY = "enemy";
+var NPC = "non playable character";
+
 /**
  * Game Engine provides all the functionality required for running the Game.
  *
@@ -40,19 +44,10 @@ function Engine() {
      * @type {Object}
      */
     this.battle = {
+        turn: undefined,
         originator: undefined,
-        target: undefined
-    };
-
-    /**
-     * Standard battle attack.
-     * @return {undefined} Nothing
-     */
-    this.battleAttack = function() {
-        var originator = this.battle.originator;
-        var target = this.battle.target;
-        var damage = originator.attributes.attack = target.attributes.defense;
-        target.attributes.life -= damage;
+        target: undefined,
+        actors: undefined
     };
 
     /**
@@ -86,16 +81,119 @@ function Engine() {
     this.actions = [];
 
     /**
+     * Custom Actor creation method for the engine
+     * @param  {Actor} actor Actor being created
+     * @return {undefined}       Nothing
+     */
+    this.customActor = function(actor) {
+        actor.turn = false;
+    };
+
+    /**
      * Element table is an object that contains all possible game elements used
      * in the game, stored in different tables.
      * @type {Object}
      */
     this.elementTable = {
-        actor: {table: this.actors, klass: Actor, custom: undefined},
+        actor: {table: this.actors, klass: Actor, custom: this.customActor},
         scene: {table: this.scenes, klass: Scene, custom: undefined},
         objeto: {table: this.objetos, klass: Objeto, custom: undefined},
         evento: {table: this.eventos, klass: Evento, custom: undefined},
         action: {table: this.actions, klass: Action, custom: undefined}
+    };
+
+    /**
+     * Standard battle attack.
+     * @return {undefined} Nothing
+     */
+    this.battleAttack = function() {
+        this.battle.originator.damage(this.battle.target);
+    };
+
+    /**
+     * Set the next originator from the battle actors.
+     * @return {undefined} Nothing
+     */
+    this.nextOriginator = function() {
+        actor = this.battle.actors.shift();
+        actor.turn = true;
+        this.battle.originator = actor;
+    };
+
+    /**
+     * Select the next target for the turn.
+     * @type {Function}
+     */
+    this.selectNextTarget = undefined;
+
+    /**
+     * Set the next target for the the turn.
+     * @return {undefined} Nothing
+     */
+    this.nextTarget = function() {
+        var target = this.selectNextTarget();
+        this.battle.target = target;
+    };
+
+    /**
+     * Initialize the battle engine.
+     * @return {undefined} Nothing
+     */
+    this.initBattle = function() {
+        this.battle.actors = [];
+        for (var i = 0; i < this.actors.length; i++) {
+            this.battle.actors.push(this.actors[i]);
+        }
+        this.nextOriginator();
+        this.battle.turn = this.battle.originator.playableSide;
+        this.nextTarget();
+    };
+
+    /**
+     * Set the next originator for the turn.
+     * @return {undefined} Nothing
+     */
+    this.nextActor = function() {
+        this.battle.originator.turn = false;
+        this.battle.actors.push(this.battle.originator);
+        this.nextOriginator();
+    };
+
+    /**
+     * Run a battle turn.
+     * @param  {Function} turnAction Action to run for the turn
+     * @return {undefined}            Nothing
+     */
+    this.runTurn = function(turnAction) {
+        turnAction.call(this);
+    };
+
+    /**
+     * Run turn results.
+     * @return {undefined} Nothing
+     */
+    this.runTurnResult = function() {
+        var toDelete = [];
+        var actor;
+        for (var i = 0; i < this.battle.actors.length; i++) {
+            if (this.battle.actors[i].isAlive() === false) {
+                toDelete.push(i);
+            }
+        }
+        if (toDelete.length > 0) {
+            for (i = (toDelete.length - 1); i >= 0; i--) {
+                actor = this.battle.actors[toDelete[i]];
+                console.log(actor.name + ' is dead');
+                this.battle.actors.splice(toDelete[i]);
+            }
+        }
+        if (this.battle.actors.length > 0) {
+            this.nextActor();
+            this.nextTarget();
+        } else {
+            actor = this.battle.originator;
+            console.log(actor.name + ' won the battle');
+        }
     };
 
     /**
@@ -139,6 +237,9 @@ function Engine() {
         } else {
             if (element.engId === undefined) {
                 element.engId = this.getNextEngId();
+            }
+            if (elemTable.custom) {
+                elemTable.custom.call(this, element);
             }
             elemTable.table.push(element);
             return element;
@@ -218,7 +319,14 @@ function createAttributes() {
     var _ = {
         life: arguments[0],
         attack: arguments[1],
-        defense: arguments[2]
+        defense: arguments[2],
+        damage : function(originator, target) {
+            var damage = originator.attributes.attack - target.attributes.defense;
+            target.attributes.life -= damage;
+        },
+        isAlive : function() {
+            return (this.life > 0);
+        }
     };
     return _;
 }
@@ -230,6 +338,25 @@ function createAttributes() {
 function Actor(args) {
     GObject.apply(this, args);
     this.attributes = args[1];
+    this.playable = args[2] ? args[2] : true;
+    this.playableSide = args[3] ? args[3] : PLAYER;
+
+    /**
+     * Actor damage target.
+     * @param  {Actor} target Target actor receiving the damage
+     * @return {undefined}        Nothing
+     */
+    this.damage = function(target) {
+        this.attributes.damage(this, target);
+    };
+
+    /**
+     * Returns if the actor is alive.
+     * @return {Boolean} true if actor is alive, false else
+     */
+    this.isAlive = function() {
+        return this.attributes.isAlive();
+    };
 }
 inheritKlass(GObject, Actor);
 
@@ -260,6 +387,10 @@ function Evento(args) {
     this.steps = [];
     this.conditions = [];
 
+    /**
+     * Add step to the event
+     * @param {Step} step Event step.
+     */
     this.addStep = function(step) {
         this.steps.push(step);
     };
@@ -360,8 +491,9 @@ function AttackAction() {
     args.push(function() {
         var originator = geng.battle.originator;
         var target = geng.battle.target;
-        geng.battleAttack();
+        geng.runTurn(geng.battleAttack);
         console.log(originator.name + " attack " + target.name + "[" + target.attributes.life + "]");
+        geng.runTurnResult();
     });
     args.push(false);
     Action.call(this, args);
@@ -445,10 +577,15 @@ function test_on_event() {
 }
 
 function test_on_actor() {
-    var attrs = createAttributes(100, 10, 5);
-    var jose = new Actor(['jose', attrs]);
-    var goblin = new Actor(['goblin', attrs]);
+    var jose = new Actor(['jose', createAttributes(100, 50, 5)]);
+    var goblin = new Actor(['goblin', createAttributes(80, 8, 1), true, ENEMY]);
+    geng.selectNextTarget = function() {
+        if (jose.turn) {
+            return goblin;
+        } else {
+            return jose;
+        }
+    };
     geng.addElements('actor', [jose, goblin]);
-    geng.battle.originator = jose;
-    geng.battle.target = goblin;
+    geng.initBattle();
 }
