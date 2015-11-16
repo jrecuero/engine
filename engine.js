@@ -47,7 +47,37 @@ function Engine() {
         turn: undefined,
         originator: undefined,
         target: undefined,
-        actors: undefined
+        actors: undefined,
+        userif: {},
+        /**
+         * Returns Array with actors for the given playable side.
+         * @param  {String} playableSide Playable side to select actors
+         * @return {Array} Array with actor from given playable side
+         */
+        getActors: function(playableSide) {
+            var result = [];
+            for (var i = 0; i < this.actors.length; i++) {
+                var actor = this.actors[i];
+                if (actor.playableSide == playableSide){
+                    result.push(actor);
+                }
+            }
+            return result;
+        },
+        /**
+         * Returns Array with enemy actors.
+         * @return {Array} Array with enemy actors
+         */
+        enemyActors: function() {
+            return this.getActors(ENEMY);
+        },
+        /**
+         * Returns Array with player actors.
+         * @return {Array} Array with player actors
+         */
+        playerActors: function() {
+            return this.getActors(PLAYER);
+        }
     };
 
     /**
@@ -184,7 +214,7 @@ function Engine() {
             for (i = (toDelete.length - 1); i >= 0; i--) {
                 actor = this.battle.actors[toDelete[i]];
                 console.log(actor.name + ' is dead');
-                this.battle.actors.splice(toDelete[i]);
+                this.battle.actors.splice(toDelete[i], 1);
             }
         }
         if (this.battle.actors.length > 0) {
@@ -483,12 +513,18 @@ inheritKlass(Action, MoveAction);
 
 /**
  * Attack Action class for attack action.
+ * TODO: This method has to give up a lot of functionality to be moved to the
+ * engine.
  */
 function AttackAction() {
     var args = [];
     args.push('attack');
     args.push('battle');
     args.push(function() {
+        var targetSelect = document.getElementById("target");
+        var index = targetSelect.selectedIndex;
+        var selection = targetSelect[index].theTarget;
+        geng.battle.target = selection;
         var originator = geng.battle.originator;
         var target = geng.battle.target;
         geng.runTurn(geng.battleAttack);
@@ -578,14 +614,38 @@ function test_on_event() {
 
 function test_on_actor() {
     var jose = new Actor(['jose', createAttributes(100, 50, 5)]);
-    var goblin = new Actor(['goblin', createAttributes(80, 8, 1), true, ENEMY]);
+    var goblin1 = new Actor(['goblin1', createAttributes(80, 8, 1), true, ENEMY]);
+    var goblin2 = new Actor(['goblin2', createAttributes(80, 8, 1), true, ENEMY]);
     geng.selectNextTarget = function() {
-        if (jose.turn) {
-            return goblin;
-        } else {
-            return jose;
+        var targetSelect = document.getElementById("target");
+        var targetLength = targetSelect.length;
+        for (var i = 0; i < targetLength; i++) {
+            targetSelect.remove(0);
         }
+        var opt;
+        if (jose.turn) {
+            var enemies = geng.battle.enemyActors();
+            for (i = 0; i < enemies.length; i++) {
+                opt = document.createElement("option");
+                var enemy = enemies[i];
+                opt.value = enemy.name;
+                opt.innerHTML = enemy.name;
+                opt.theTarget = enemy;
+                targetSelect.appendChild(opt);
+            }
+        } else {
+            var players = geng.battle.playerActors();
+            for (i = 0; i < players.length; i++) {
+                opt = document.createElement("option");
+                var player = players[i];
+                opt.value = player.name;
+                opt.innerHTML = player.name;
+                opt.theTarget = player;
+                targetSelect.appendChild(opt);
+            }
+        }
+        return undefined;
     };
-    geng.addElements('actor', [jose, goblin]);
+    geng.addElements('actor', [jose, goblin1, goblin2]);
     geng.initBattle();
 }
