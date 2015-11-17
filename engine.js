@@ -321,12 +321,19 @@ function Engine() {
      * @return {undefined} Nothing
      */
     this.runActions = function() {
+        var toremove = [];
         for ( var i = 0; i < this.actions.length; i++ ) {
             action = this.actions[ i ];
             if ( action.active ) {
                 action.callback.call( action );
                 action.active = false;
+                if (action.remove) {
+                    toremove.push( i );
+                }
             }
+        }
+        for ( var r in toremove ) {
+            this.actions.splice( r, 1 );
         }
     };
 
@@ -367,6 +374,8 @@ function Engine() {
                 this.runTurnResult();
                 break;
             case ST_IN_BATTLE_WAITING_AI:
+                var attack = new AttackAction();
+                geng.addElement( "action", attack );
                 attack.active = true;
                 this.run();
                 this.runTurn( this.battleAttack );
@@ -557,6 +566,7 @@ function Action( args ) {
     this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
     this.callback = args && args[ 2 ] ? args[ 2 ] : undefined;
     this.active = args && args[ 3 ] ? args[ 3 ] : false;
+    this.remove = args && args[ 4 ] ? args[ 4 ] : true;
 }
 inheritKlass( GObject, Action );
 
@@ -567,12 +577,13 @@ inheritKlass( GObject, Action );
 function MoveAction( steps ) {
     this.steps = steps ? steps : 1;
     var args = [];
-    args.push( "move" );
-    args.push( "move" );
-    args.push( function() {
+    args.push( "move" );        // action name
+    args.push( "move" );        // action type
+    args.push( function() {     // action callback
         console.log( "you moved " + this.steps );
     } );
-    args.push( false );
+    args.push( false );         // action active
+    args.push( true );         // action remove after exec
     Action.call( this, args );
 }
 inheritKlass( Action, MoveAction );
@@ -584,15 +595,16 @@ inheritKlass( Action, MoveAction );
  */
 function AttackAction() {
     var args = [];
-    args.push( "attack" );
-    args.push( "battle" );
-    args.push( function() {
+    args.push( "attack" );      // action name
+    args.push( "battle" );      // actioon type
+    args.push( function() {     // action callback
         var targetSelect = document.getElementById( "target" );
         var index = targetSelect.selectedIndex;
         var selection = targetSelect[ index ].theTarget;
         geng.battle.target = selection;
     } );
-    args.push( false );
+    args.push( false );         // action active
+    args.push( true );         // action remove after exec
     Action.call( this, args );
 }
 inheritKlass( Action, AttackAction );
@@ -602,12 +614,13 @@ inheritKlass( Action, AttackAction );
  */
 function DefenseAction() {
     var args = [];
-    args.push( "defense" );
-    args.push( "battle" );
-    args.push( function() {
+    args.push( "defense" );     // action name
+    args.push( "battle" );      // action type
+    args.push( function() {     // action callback
         console.log( "you defend" );
     } );
-    args.push( false );
+    args.push( false );         // action active
+    args.push( true );          // action remove after exec
     Action.call( this, args );
 }
 inheritKlass( Action, DefenseAction );
@@ -631,11 +644,15 @@ function runDisableAction() {
     setTimeout( runEnableAction.call( this ), Math.floor( Math.random() * 10 ) );
 }
 
+// ----------------------------------------------------------------------------
+// GAME ENGINE CONFIGURATION
+// ----------------------------------------------------------------------------
+
 // Create Basic actions and add them to the engine.
-var move = new MoveAction();
-var attack = new AttackAction();
-var defense = new DefenseAction();
-geng.addElements( "action", [ move, attack, defense ] );
+// var move = new MoveAction();
+// var attack = new AttackAction();
+// var defense = new DefenseAction();
+// geng.addElements( "action", [ move, attack, defense ] );
 
 // Set the interval the engine will run again.
 setInterval( function() { geng.runBattle(); }, 100 );
@@ -647,6 +664,8 @@ function test_on_move() {
 }
 
 function test_on_attack() {
+    var attack = new AttackAction();
+    geng.addElement( "action", attack );
     geng.status = ST_IN_BATTLE_RUN_INPUT;
     attack.active = true;
 }
