@@ -2,6 +2,13 @@ var PLAYER = "player";
 var ENEMY = "enemy";
 var NPC = "non playable character";
 
+var ST_IN_BATTLE = "in battle";
+var ST_IN_BATTLE_WAITING_INPUT = "battle waiting input";
+var ST_IN_BATTLE_RUN_INPUT = "battle run imput";
+var ST_IN_BATTLE_WAITING_AI = "battle waiting ai";
+var ST_WAITING = "waiting";
+var ST_NONE = "none";
+
 /**
  * Game Engine provides all the functionality required for running the Game.
  *
@@ -37,6 +44,12 @@ function Engine() {
             return true;
         }
     };
+
+    /**
+     * Engine status attribute.
+     * @type {String}
+     */
+    this.status = ST_NONE;
 
     /**
      * Battle attributes defining who is the battle originator and who are the
@@ -166,6 +179,17 @@ function Engine() {
     };
 
     /**
+     * Set engine status based on the battle turn (next originator actor side).
+     */
+    this.setStatusByNextActor = function() {
+        if ( this.battle.turn === PLAYER ) {
+            this.status = ST_IN_BATTLE_WAITING_INPUT;
+        } else {
+            this.status = ST_IN_BATTLE_WAITING_AI;
+        }
+    };
+
+    /**
      * Initialize the battle engine.
      * @return {undefined} Nothing
      */
@@ -177,6 +201,7 @@ function Engine() {
         this.nextOriginator();
         this.battle.turn = this.battle.originator.playableSide;
         this.nextTarget();
+        this.setStatusByNextActor();
     };
 
     /**
@@ -187,6 +212,8 @@ function Engine() {
         this.battle.originator.turn = false;
         this.battle.actors.push( this.battle.originator );
         this.nextOriginator();
+        this.battle.turn = this.battle.originator.playableSide;
+        this.setStatusByNextActor();
     };
 
     /**
@@ -223,6 +250,7 @@ function Engine() {
         } else {
             actor = this.battle.originator;
             console.log( actor.name + " won the battle" );
+            this.status = ST_WAITING;
         }
     };
 
@@ -309,6 +337,44 @@ function Engine() {
     this.run = function() {
         if ( this.actions ) {
             this.runActions();
+        }
+    };
+
+    /**
+     * Console log information with battle action results.
+     * @return {undefined} Nothing
+     */
+    this.logBattleActionResults = function() {
+        var originator = this.battle.originator;
+        var target = this.battle.target;
+        console.log( originator.name + " attack " + target.name + "[" + target.attributes.life + "]" );
+    };
+
+    /**
+     * Run battle enfien machine.
+     * @return {undefined} Nothing
+     */
+    this.runBattle = function() {
+        switch (this.status) {
+            case ST_IN_BATTLE:
+                break;
+            case ST_IN_BATTLE_WAITING_INPUT:
+                break;
+            case ST_IN_BATTLE_RUN_INPUT:
+                this.run();
+                this.runTurn( this.battleAttack );
+                this.logBattleActionResults();
+                this.runTurnResult();
+                break;
+            case ST_IN_BATTLE_WAITING_AI:
+                attack.active = true;
+                this.run();
+                this.runTurn( this.battleAttack );
+                this.logBattleActionResults();
+                this.runTurnResult();
+                break;
+            default:
+                break;
         }
     };
 }
@@ -525,11 +591,6 @@ function AttackAction() {
         var index = targetSelect.selectedIndex;
         var selection = targetSelect[ index ].theTarget;
         geng.battle.target = selection;
-        var originator = geng.battle.originator;
-        var target = geng.battle.target;
-        geng.runTurn( geng.battleAttack );
-        console.log( originator.name + " attack " + target.name + "[" + target.attributes.life + "]" );
-        geng.runTurnResult();
     } );
     args.push( false );
     Action.call( this, args );
@@ -577,7 +638,7 @@ var defense = new DefenseAction();
 geng.addElements( "action", [ move, attack, defense ] );
 
 // Set the interval the engine will run again.
-setInterval( function() { geng.run(); }, 100 );
+setInterval( function() { geng.runBattle(); }, 100 );
 
 // ----- TEST METHODS -----
 
@@ -586,6 +647,7 @@ function test_on_move() {
 }
 
 function test_on_attack() {
+    geng.status = ST_IN_BATTLE_RUN_INPUT;
     attack.active = true;
 }
 
