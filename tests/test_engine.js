@@ -5,10 +5,14 @@ function test_on_move() {
 }
 
 function test_on_attack() {
-    var attack = new NS_Action.attack();
-    NS_GEngine.addElement( "action", attack );
-    NS_GEngine.status = ST_IN_BATTLE_RUN_INPUT;
-    attack.active = true;
+    if (NS_GEngine.status === ST_IN_BATTLE_END) {
+        console.log('Battle has ended');
+    } else {
+        var attack = new NS_Action.attack();
+        NS_GEngine.addElement( "action", attack );
+        NS_GEngine.status = ST_IN_BATTLE_RUN_INPUT;
+        attack.active = true;
+    }
 }
 
 function test_on_defense() {
