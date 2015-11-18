@@ -9,6 +9,308 @@ var ST_IN_BATTLE_WAITING_AI = "battle waiting ai";
 var ST_WAITING = "waiting";
 var ST_NONE = "none";
 
+
+/**
+ * GObject represents any game object in the system.
+ */
+function GObject() {
+    this.name = arguments[ 0 ] ? arguments[ 0 ] : "object";
+    this.getNextObjId = function() {
+        GObject.ID++;
+        return GObject.ID;
+    };
+    this.objId = this.getNextObjId();
+}
+GObject.ID = 0;
+
+
+/**
+ * InheritKlass provides inherited functionality.
+ *
+ * @param  {Class} parent Parent class
+ * @param  {Class} child  Derived class
+ * @return {undefined}    Nothing
+ */
+function inheritKlass( parent, child ) {
+    child.prototype = new parent();
+    child.prototype.constructor = child;
+}
+
+
+/**
+ * Common NameSpace functions.
+ * @return {undefined} Nothing
+ */
+function _Common() {
+    this.engine = undefined;
+
+    /**
+     * Create actor attributes to be used.
+     * @return {Object} Actor attributes
+     */
+    this.createAttributes = function() {
+        var _ = {
+            life: arguments[ 0 ],
+            attack: arguments[ 1 ],
+            defense: arguments[ 2 ],
+            damage: function( originator, target ) {
+                var damage = originator.attributes.attack - target.attributes.defense;
+                target.attributes.life -= damage;
+            },
+            isAlive: function() {
+                return ( this.life > 0 );
+            }
+        };
+        return _;
+    };
+}
+
+
+/**
+ * Action NameSpace function
+ * @return {undefined} Nothing
+ */
+function _Action() {
+    this.engine = undefined;
+
+    /**
+     * Action class for any action used in the game.
+     * @param {Array} args Arguments required for the constructor
+     */
+    this.Action = function( args ) {
+        GObject.apply( this, args );
+        this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
+        this.callback = args && args[ 2 ] ? args[ 2 ] : undefined;
+        this.active = args && args[ 3 ] ? args[ 3 ] : false;
+        this.remove = args && args[ 4 ] ? args[ 4 ] : true;
+    };
+    inheritKlass( GObject, this.Action );
+
+    /**
+     * Move Action class for movement action.
+     * @param {Integer} steps Number of steps to move
+     */
+    this.move = function( steps ) {
+        this.steps = steps ? steps : 1;
+        var args = [];
+        args.push( "move" );        // action name
+        args.push( "move" );        // action type
+        args.push( function() {     // action callback
+            console.log( "you moved " + this.steps );
+        } );
+        args.push( false );         // action active
+        args.push( true );         // action remove after exec
+        NS_Action.Action.call( this, args );
+    };
+    inheritKlass( this.Action, this.move );
+
+    /**
+     * Attack Action class for attack action.
+     * TODO: This method has to give up a lot of functionality to be moved to the
+     * engine.
+     */
+    this.attack = function() {
+        var args = [];
+        args.push( "attack" );      // action name
+        args.push( "battle" );      // actioon type
+        args.push( function() {     // action callback
+            var targetSelect = document.getElementById( "target" );
+            var index = targetSelect.selectedIndex;
+            var selection = targetSelect[ index ].theTarget;
+            NS_GEngine.battle.target = selection;
+        } );
+        args.push( false );         // action active
+        args.push( true );         // action remove after exec
+        NS_Action.Action.call( this, args );
+    };
+    inheritKlass( this.Action, this.attack );
+
+
+    /**
+     * Defense Action class for defense action.
+     */
+    this.defense = function() {
+        var args = [];
+        args.push( "defense" );     // action name
+        args.push( "battle" );      // action type
+        args.push( function() {     // action callback
+            console.log( "you defend" );
+        } );
+        args.push( false );         // action active
+        args.push( true );          // action remove after exec
+        NS_Action.Action.call( this, args );
+    };
+    inheritKlass( this.Action, this.defense );
+}
+
+
+/**
+ * Actor NameSpace function.
+ * @return {undefined} Nothing
+ */
+function _Actor() {
+    this.engine = undefined;
+
+    /**
+     * Actor class for any playable or not playable actor in the game.
+     * @param {Array} args Arguments required for the constructor
+     */
+    this.Actor = function( args ) {
+        GObject.apply( this, args );
+        this.attributes = args[ 1 ];
+        this.playable = args[ 2 ] ? args[ 2 ] : true;
+        this.playableSide = args[ 3 ] ? args[ 3 ] : PLAYER;
+
+        /**
+         * Actor damage target.
+         * @param  {Actor} target Target actor receiving the damage
+         * @return {undefined}        Nothing
+         */
+        this.damage = function( target ) {
+            this.attributes.damage( this, target );
+        };
+
+        /**
+         * Returns if the actor is alive.
+         * @return {Boolean} true if actor is alive, false else
+         */
+        this.isAlive = function() {
+            return this.attributes.isAlive();
+        };
+    };
+    inheritKlass( GObject, this.Actor );
+}
+
+
+/**
+ * Evento NameSpace function.
+ * @return {undefined} Nothing
+ */
+function _Evento() {
+    this.engine = undefined;
+
+    /**
+     * Evento class for any event used in the game.
+     * @param {Array} args Arguments required for the construtor
+     */
+    this.Evento = function( args ) {
+        GObject.apply( this, args );
+        this.steps = [];
+        this.conditions = [];
+
+        /**
+         * Add step to the event
+         * @param {Step} step Event step.
+         */
+        this.addStep = function( step ) {
+            this.steps.push( step );
+        };
+
+        // Steps have to be created as a tree, so they can be traversed. In that way
+        // it will be possible to have differnt branches. Every event should be
+        // added in the proper way.
+        // We could have different types of steps:
+        // - Sequential step
+        // - Decission steps (n number of options)
+        // - Loop steps (stablish an start and and point)
+        this.runAllSteps = function() {
+            for ( var i = 0; i < this.steps.length; i++ ) {
+               var result = this.steps[ i ].execute.call( this.steps[ i ] );
+               if ( result && this.steps[ i ] ) {
+                    this.steps[ i ].processing.call( this, result );
+               }
+            }
+        };
+    };
+    inheritKlass( GObject, this.Evento );
+
+
+    /**
+     * Set a game event to be used in the game engine.
+     * @param {Function} executeCb    Execute the event
+     * @param {Function} processingCb Process the event result
+    */
+    this.setGEvent = function( executeCb, processingCb ) {
+        var _ = {
+            execute: executeCb,
+            processing: processingCb
+        };
+        return _;
+    };
+
+    /**
+     * Create a new Prompt Event to be used as a game event.
+     * @param {String} message String to be used in the prompt window
+     */
+    this.setEventPrompt = function( message ) {
+        return this.setGEvent( function( msg ) {
+            return function() {
+                return prompt( msg );
+            };
+        }( message ), function( result ) {
+            console.log( result );
+        } );
+    };
+
+    /**
+     * Create a new Dialog Event to be used as a game event.
+     * @param {String} message String to be used in the console dialog
+     */
+    this.setEventDialog = function( message ) {
+        return this.setGEvent( function( msg ) {
+            return function() {
+                console.log( msg );
+            };
+        }( message ), undefined );
+    };
+}
+
+
+/**
+ * Objecto NameSpace function.
+ * @return {undefined} Nothing
+ */
+function _Objeto() {
+    this.engine = undefined;
+
+    /**
+     * Objecto class for any object (item, usable, equipment, ...) used in the game.
+     * @param {Array} args Arguments required for the constructor
+     */
+    this.Objeto = function( args ) {
+        GObject.apply( this, args );
+    };
+    inheritKlass( GObject, this.Objeto );
+}
+
+
+/**
+ * Scene NameSpace function.
+ * @return {undefined} Nothing
+ */
+function _Scene() {
+    this.engine = undefined;
+
+    /**
+     * Scene class for any scene used in the game
+     * @param {Array} args Arguments required for the constructor
+     */
+    this.Scene = function( args ) {
+        GObject.apply( this, args );
+    };
+    inheritKlass( GObject, this.Scene );
+}
+
+
+// Create all Namespaces.
+var NS_Common = new _Common();
+var NS_Action = new _Action();
+var NS_Actor = new _Actor();
+var NS_Evento = new _Evento();
+var NS_Objeto = new _Objeto();
+var NS_Scene = new _Scene();
+
+
 /**
  * Game Engine provides all the functionality required for running the Game.
  *
@@ -16,14 +318,14 @@ var ST_NONE = "none";
  * for running and displaying those.
  *
  */
-function Engine() {
+function _Engine() {
     /**
      * Generate the next available engine ID.
      * @return {int} Next available engine ID
      */
     this.getNextEngId = function() {
-        Engine.ID++;
-        return Engine.ID;
+        _Engine.ID++;
+        return _Engine.ID;
     };
 
     /**
@@ -138,11 +440,11 @@ function Engine() {
      * @type {Object}
      */
     this.elementTable = {
-        actor: { table: this.actors, klass: Actor, custom: this.customActor },
-        scene: { table: this.scenes, klass: Scene, custom: undefined },
-        objeto: { table: this.objetos, klass: Objeto, custom: undefined },
-        evento: { table: this.eventos, klass: Evento, custom: undefined },
-        action: { table: this.actions, klass: Action, custom: undefined }
+        actor: { table: this.actors, klass: NS_Actor.Actor, custom: this.customActor },
+        scene: { table: this.scenes, klass: NS_Scene.Scene, custom: undefined },
+        objeto: { table: this.objetos, klass: NS_Objeto.Objeto, custom: undefined },
+        evento: { table: this.eventos, klass: NS_Evento.Evento, custom: undefined },
+        action: { table: this.actions, klass: NS_Action.Action, custom: undefined }
     };
 
     /**
@@ -168,6 +470,12 @@ function Engine() {
      * @type {Function}
      */
     this.selectNextTarget = undefined;
+
+    /**
+     * Selecte the next AI action for the turn
+     * @type {Function}
+     */
+    this.selectNextAiAction = undefined;
 
     /**
      * Set the next target for the the turn.
@@ -374,9 +682,7 @@ function Engine() {
                 this.runTurnResult();
                 break;
             case ST_IN_BATTLE_WAITING_AI:
-                var attack = new AttackAction();
-                geng.addElement( "action", attack );
-                attack.active = true;
+                this.selectNextAiAction();
                 this.run();
                 this.runTurn( this.battleAttack );
                 this.logBattleActionResults();
@@ -388,345 +694,26 @@ function Engine() {
     };
 }
 
-Engine.ID = 0;
-var geng = new Engine();
-
-/**
- * GObject represents any game object in the system.
- */
-function GObject() {
-    this.name = arguments[ 0 ] ? arguments[ 0 ] : "object";
-    this.getNextObjId = function() {
-        GObject.ID++;
-        return GObject.ID;
-    };
-    this.objId = this.getNextObjId();
-}
-GObject.ID = 0;
-
-/**
- * InheritKlass provides inherited functionality.
- *
- * @param  {Class} parent Parent class
- * @param  {Class} child  Derived class
- * @return {undefined}    Nothing
- */
-function inheritKlass( parent, child ) {
-    child.prototype = new parent();
-    child.prototype.constructor = child;
-}
-
-/**
- * Create actor attributes to be used.
- * @return {Object} Actor attributes
- */
-function createAttributes() {
-    var _ = {
-        life: arguments[ 0 ],
-        attack: arguments[ 1 ],
-        defense: arguments[ 2 ],
-        damage: function( originator, target ) {
-            var damage = originator.attributes.attack - target.attributes.defense;
-            target.attributes.life -= damage;
-        },
-        isAlive: function() {
-            return ( this.life > 0 );
-        }
-    };
-    return _;
-}
-
-/**
- * Actor class for any playable or not playable actor in the game.
- * @param {Array} args Arguments required for the constructor
- */
-function Actor( args ) {
-    GObject.apply( this, args );
-    this.attributes = args[ 1 ];
-    this.playable = args[ 2 ] ? args[ 2 ] : true;
-    this.playableSide = args[ 3 ] ? args[ 3 ] : PLAYER;
-
-    /**
-     * Actor damage target.
-     * @param  {Actor} target Target actor receiving the damage
-     * @return {undefined}        Nothing
-     */
-    this.damage = function( target ) {
-        this.attributes.damage( this, target );
-    };
-
-    /**
-     * Returns if the actor is alive.
-     * @return {Boolean} true if actor is alive, false else
-     */
-    this.isAlive = function() {
-        return this.attributes.isAlive();
-    };
-}
-inheritKlass( GObject, Actor );
-
-/**
- * Scene class for any scene used in the game
- * @param {Array} args Arguments required for the constructor
- */
-function Scene( args ) {
-    GObject.apply( this, args );
-}
-inheritKlass( GObject, Scene );
-
-/**
- * Objecto class for any object (item, usable, equipment, ...) used in the game.
- * @param {Array} args Arguments required for the constructor
- */
-function Objeto( args ) {
-    GObject.apply( this, args );
-}
-inheritKlass( GObject, Objeto );
-
-/**
- * Evento class for any event used in the game.
- * @param {Array} args Arguments required for the construtor
- */
-function Evento( args ) {
-    GObject.apply( this, args );
-    this.steps = [];
-    this.conditions = [];
-
-    /**
-     * Add step to the event
-     * @param {Step} step Event step.
-     */
-    this.addStep = function( step ) {
-        this.steps.push( step );
-    };
-
-    // Steps have to be created as a tree, so they can be traversed. In that way
-    // it will be possible to have differnt branches. Every event should be
-    // added in the proper way.
-    // We could have different types of steps:
-    // - Sequential step
-    // - Decission steps (n number of options)
-    // - Loop steps (stablish an start and and point)
-    this.runAllSteps = function() {
-        for ( var i = 0; i < this.steps.length; i++ ) {
-           var result = this.steps[ i ].execute.call( this.steps[ i ] );
-           if ( result && this.steps[ i ] ) {
-                this.steps[ i ].processing.call( this, result );
-           }
-        }
-    };
-}
-inheritKlass( GObject, Evento );
-
-/**
- * Set a game event to be used in the game engine.
- * @param {Function} executeCb    Execute the event
- * @param {Function} processingCb Process the event result
-*/
-function setGEvent( executeCb, processingCb ) {
-    var _ = {
-        execute: executeCb,
-        processing: processingCb
-    };
-    return _;
-}
-
-/**
- * Create a new Prompt Event to be used as a game event.
- * @param {String} message String to be used in the prompt window
- */
-function setEventPrompt( message ) {
-    return setGEvent( function( msg ) {
-        return function() {
-            return prompt( msg );
-        };
-    }( message ), function( result ) {
-        console.log( result );
-    } );
-}
-
-/**
- * Create a new Dialog Event to be used as a game event.
- * @param {String} message String to be used in the console dialog
- */
-function setEventDialog( message ) {
-    return setGEvent( function( msg ) {
-        return function() {
-            console.log( msg );
-        };
-    }( message ), undefined );
-}
-
-/**
- * Action class for any action used in the game.
- * @param {Array} args Arguments required for the constructor
- */
-function Action( args ) {
-    GObject.apply( this, args );
-    this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
-    this.callback = args && args[ 2 ] ? args[ 2 ] : undefined;
-    this.active = args && args[ 3 ] ? args[ 3 ] : false;
-    this.remove = args && args[ 4 ] ? args[ 4 ] : true;
-}
-inheritKlass( GObject, Action );
-
-/**
- * Move Action class for movement action.
- * @param {Integer} steps Number of steps to move
- */
-function MoveAction( steps ) {
-    this.steps = steps ? steps : 1;
-    var args = [];
-    args.push( "move" );        // action name
-    args.push( "move" );        // action type
-    args.push( function() {     // action callback
-        console.log( "you moved " + this.steps );
-    } );
-    args.push( false );         // action active
-    args.push( true );         // action remove after exec
-    Action.call( this, args );
-}
-inheritKlass( Action, MoveAction );
-
-/**
- * Attack Action class for attack action.
- * TODO: This method has to give up a lot of functionality to be moved to the
- * engine.
- */
-function AttackAction() {
-    var args = [];
-    args.push( "attack" );      // action name
-    args.push( "battle" );      // actioon type
-    args.push( function() {     // action callback
-        var targetSelect = document.getElementById( "target" );
-        var index = targetSelect.selectedIndex;
-        var selection = targetSelect[ index ].theTarget;
-        geng.battle.target = selection;
-    } );
-    args.push( false );         // action active
-    args.push( true );         // action remove after exec
-    Action.call( this, args );
-}
-inheritKlass( Action, AttackAction );
-
-/**
- * Defense Action class for defense action.
- */
-function DefenseAction() {
-    var args = [];
-    args.push( "defense" );     // action name
-    args.push( "battle" );      // action type
-    args.push( function() {     // action callback
-        console.log( "you defend" );
-    } );
-    args.push( false );         // action active
-    args.push( true );          // action remove after exec
-    Action.call( this, args );
-}
-inheritKlass( Action, DefenseAction );
-
-/**
- * Run particular action which enable the action
- * @return {undefined} Nothing
- */
-function runEnableAction() {
-    console.log( "enable-action call for " + this.name + " action" );
-    this.active = true;
-}
-
-/**
- * Run particular action which disable the action.
- * @return {Action} Action instance
- */
-function runDisableAction() {
-    console.log( "action " + this.name + " has run" );
-    this.active = false;
-    setTimeout( runEnableAction.call( this ), Math.floor( Math.random() * 10 ) );
-}
 
 // ----------------------------------------------------------------------------
 // GAME ENGINE CONFIGURATION
 // ----------------------------------------------------------------------------
 
+_Engine.ID = 0;
+var NS_GEngine = new _Engine();
+
+NS_Common.engine = NS_GEngine;
+NS_Action.engine = NS_GEngine;
+NS_Actor.engine = NS_GEngine;
+NS_Evento.engine = NS_GEngine;
+NS_Objeto.engine = NS_GEngine;
+NS_Scene.engine = NS_GEngine;
+
 // Create Basic actions and add them to the engine.
 // var move = new MoveAction();
 // var attack = new AttackAction();
 // var defense = new DefenseAction();
-// geng.addElements( "action", [ move, attack, defense ] );
+// NS_GEngine.addElements( "action", [ move, attack, defense ] );
 
 // Set the interval the engine will run again.
-setInterval( function() { geng.runBattle(); }, 100 );
-
-// ----- TEST METHODS -----
-
-function test_on_move() {
-    move.active = true;
-}
-
-function test_on_attack() {
-    var attack = new AttackAction();
-    geng.addElement( "action", attack );
-    geng.status = ST_IN_BATTLE_RUN_INPUT;
-    attack.active = true;
-}
-
-function test_on_defense() {
-    defense.active = true;
-}
-
-function test_on_action() {
-    var m1 = new MoveAction( 2 );
-    var m2 = new MoveAction();
-    var a = new AttackAction();
-    var d = new DefenseAction();
-    geng.addElements( "action", [ m1, m2, a, d ] );
-    m1.active = true;
-    m2.active = true;
-    a.active = true;
-    d.active = true;
-}
-
-function test_on_event() {
-    var e1 = new Evento( [ "first evento" ] );
-    e1.addStep( setEventPrompt( "Name?" ) );
-    e1.addStep( setEventDialog( "Have a nice day" ) );
-    e1.runAllSteps();
-}
-
-function test_on_actor() {
-    var jose = new Actor( [ "jose", createAttributes( 100, 50, 5 ) ] );
-    var goblin1 = new Actor( [ "goblin1", createAttributes( 80, 8, 1 ), true, ENEMY ] );
-    var goblin2 = new Actor( [ "goblin2", createAttributes( 80, 8, 1 ), true, ENEMY ] );
-    geng.selectNextTarget = function() {
-        var targetSelect = document.getElementById( "target" );
-        var targetLength = targetSelect.length;
-        for ( var i = 0; i < targetLength; i++ ) {
-            targetSelect.remove( 0 );
-        }
-        var opt;
-        if ( jose.turn ) {
-            var enemies = geng.battle.enemyActors();
-            for ( i = 0; i < enemies.length; i++ ) {
-                opt = document.createElement( "option" );
-                var enemy = enemies[ i ];
-                opt.value = enemy.name;
-                opt.innerHTML = enemy.name;
-                opt.theTarget = enemy;
-                targetSelect.appendChild( opt );
-            }
-        } else {
-            var players = geng.battle.playerActors();
-            for ( i = 0; i < players.length; i++ ) {
-                opt = document.createElement( "option" );
-                var player = players[ i ];
-                opt.value = player.name;
-                opt.innerHTML = player.name;
-                opt.theTarget = player;
-                targetSelect.appendChild( opt );
-            }
-        }
-        return undefined;
-    };
-    geng.addElements( "actor", [ jose, goblin1, goblin2 ] );
-    geng.initBattle();
-}
+setInterval( function() { NS_GEngine.runBattle(); }, 100 );
