@@ -6,9 +6,11 @@
         <script type="text/javascript" src="tests/test_engine.js" charset="utf-8"></script>
     </head>
     <body>
-        <button type="button" onclick="test_on_move()">Move</button>
-        <button id='action' type="button" onclick="test_on_action()">Move</button>
-        <button type="button" onclick="test_on_defense()">Defense</button>
+        <button id="move" type="button" onclick="test_on_move()">Move</button>
+        <button id='action' type="button" onclick="test_on_action()">Attack</button>
+        <button id="take" type="button" onclick="test_on_use()">Use</button>
+        <button id="drop" type="button" onclick="test_on_drop()">Drop</button>
+        <button id="use" type="button" onclick="test_on_take()">Take</button>
         <select name="target" id="target">
         </select>
     </body>
