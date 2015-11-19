@@ -1,17 +1,45 @@
 // ----- TEST METHODS -----
 
+var userSteps = 0;
+
 function test_on_move() {
     move.active = true;
 }
 
 function test_on_attack() {
-    if (NS_GEngine.status === ST_IN_BATTLE_END) {
+    if (NS_GEngine.state.get() === ST_IN_BATTLE_END) {
         console.log('Battle has ended');
     } else {
         var attack = new NS_Action.attack();
         NS_GEngine.addElement( "action", attack );
-        NS_GEngine.status = ST_IN_BATTLE_RUN_INPUT;
+        NS_GEngine.state.next();
         attack.active = true;
+    }
+}
+
+function test_on_action() {
+    var state = NS_GEngine.state.get();
+    switch(state) {
+        case ST_NONE:
+            userSteps++;
+            console.log('user moves some steps ' + userSteps);
+            if (userSteps == 5) {
+                userSteps = 0;
+                NS_GEngine.initBattle();
+                var attackButton = document.getElementById( "action" );
+                attackButton.innerHTML = 'Attack';
+            }
+            break;
+        case ST_IN_BATTLE_WAITING_INPUT:
+            var attack = new NS_Action.attack();
+            NS_GEngine.addElement( "action", attack );
+            NS_GEngine.state.next();
+            attack.active = true;
+            break;
+        case ST_IN_BATTLE_END:
+            console.log('Battle has ended');
+        default:
+            break;
     }
 }
 
@@ -19,7 +47,7 @@ function test_on_defense() {
     defense.active = true;
 }
 
-function test_on_action() {
+function test_on_move() {
     var m1 = new NS_Action.move( 2 );
     var m2 = new NS_Action.move();
     var a = new NS_Action.attack();
@@ -42,7 +70,7 @@ function test_on_actor() {
     var jose = new NS_Actor.Actor( [ "jose", NS_Common.createAttributes( 100, 50, 5 ) ] );
     var goblin1 = new NS_Actor.Actor( [ "goblin1", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
     var goblin2 = new NS_Actor.Actor( [ "goblin2", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
-    NS_GEngine.selectNextTarget = function() {
+    NS_GEngine.customAvailableTarget = function() {
         var targetSelect = document.getElementById( "target" );
         var targetLength = targetSelect.length;
         for ( var i = 0; i < targetLength; i++ ) {
@@ -70,13 +98,20 @@ function test_on_actor() {
                 targetSelect.appendChild( opt );
             }
         }
-        return undefined;
     };
-    NS_GEngine.selectNextAiAction = function() {
+    NS_GEngine.customSelectNextTarget = function() {
+        var targetSelect = document.getElementById( "target" );
+        var index = targetSelect.selectedIndex;
+        return targetSelect[ index ].theTarget;
+    };
+    NS_GEngine.customSelectNextAiAction = function() {
         var attack = new NS_Action.attack();
         NS_GEngine.addElement( "action", attack );
         attack.active = true;
     };
+    NS_GEngine.customAfterBattle = function() {
+        var attackButton = document.getElementById( "action" );
+        attackButton.innerHTML = 'Move';
+    };
     NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
-    NS_GEngine.initBattle();
 }

@@ -116,10 +116,11 @@ function _Action() {
         args.push( "attack" );      // action name
         args.push( "battle" );      // actioon type
         args.push( function() {     // action callback
-            var targetSelect = document.getElementById( "target" );
-            var index = targetSelect.selectedIndex;
-            var selection = targetSelect[ index ].theTarget;
-            NS_GEngine.battle.target = selection;
+            // var targetSelect = document.getElementById( "target" );
+            // var index = targetSelect.selectedIndex;
+            // var selection = targetSelect[ index ].theTarget;
+            // NS_GEngine.battle.target = selection;
+            NS_GEngine.battleAttack();
         } );
         args.push( false );         // action active
         args.push( true );         // action remove after exec
@@ -350,10 +351,54 @@ function _Engine() {
     };
 
     /**
-     * Engine status attribute.
+     * Engine state attribute.
      * @type {String}
      */
-    this.status = ST_NONE;
+    this.state = {
+        IN_BATTLE: "in battle",
+        IN_BATTLE_WAITING_INPUT: "battle waiting input",
+        IN_BATTLE_RUN_INPUT: "battle run imput",
+        IN_BATTLE_WAITING_AI: "battle waiting ai",
+        IN_BATTLE_RUN_AI: "battle run ai",
+        IN_BATTLE_END: "battle end",
+        WAITING: "waiting",
+        NONE: "none",
+        value: undefined,
+        set: function(val) {
+            this.value = val;
+        },
+        get: function() {
+            return this.value;
+        },
+        reset: function() {
+            this.set(this.NONE);
+        },
+        next: function() {
+            switch(this.value) {
+                case this.IN_BATTLE:
+                    this.set(this.IN_BATTLE_WAITING_INPUT);
+                    break;
+                case this.IN_BATTLE_WAITING_INPUT:
+                    this.set(this.IN_BATTLE_RUN_INPUT);
+                    break;
+                case this.IN_BATTLE_RUN_INPUT:
+                    this.set(this.IN_BATTLE_WAITING_AI);
+                    break;
+                case this.IN_BATTLE_WAITING_AI:
+                    this.set(this.IN_BATTLE_RUN_AI);
+                    break;
+                case this.IN_BATTLE_RUN_AI:
+                    this.set(this.IN_BATTLE_END);
+                    break;
+                case this.IN_BATTLE_END:
+                    this.set(this.NONE);
+                    break;
+                default:
+                    break;
+            }
+            return this.get();
+        }
+    };
 
     /**
      * Battle attributes defining who is the battle originator and who are the
@@ -472,31 +517,44 @@ function _Engine() {
      * Select the next target for the turn.
      * @type {Function}
      */
-    this.selectNextTarget = undefined;
+    this.customSelectNextTarget = undefined;
 
     /**
      * Selecte the next AI action for the turn
      * @type {Function}
      */
-    this.selectNextAiAction = undefined;
+    this.customSelectNextAiAction = undefined;
+
+    /**
+     * Custom actions to do after battle has ended.
+     * @type {Function}
+     */
+    this.customAfterBattle = undefined;
+
+    /**
+     * Custom action that display all available targets.
+     * @type {Function}
+     */
+    this.customAvailableTarget = undefined;
 
     /**
      * Set the next target for the the turn.
      * @return {undefined} Nothing
      */
     this.nextTarget = function() {
-        var target = this.selectNextTarget();
+        var target = this.customSelectNextTarget();
         this.battle.target = target;
     };
 
+
     /**
-     * Set engine status based on the battle turn (next originator actor side).
+     * Set engine state based on the battle turn (next originator actor side).
      */
-    this.setStatusByNextActor = function() {
+    this.setStateByNextActor = function() {
         if ( this.battle.turn === PLAYER ) {
-            this.status = ST_IN_BATTLE_WAITING_INPUT;
+            this.state.set(ST_IN_BATTLE_WAITING_INPUT);
         } else {
-            this.status = ST_IN_BATTLE_WAITING_AI;
+            this.state.set(ST_IN_BATTLE_WAITING_AI);
         }
     };
 
@@ -510,8 +568,8 @@ function _Engine() {
             this.battle.actors.push( this.actors[ i ] );
         }
         this.nextOriginator();
-        this.nextTarget();
-        this.setStatusByNextActor();
+        this.customAvailableTarget();
+        this.setStateByNextActor();
     };
 
     /**
@@ -522,16 +580,7 @@ function _Engine() {
         this.battle.originator.turn = false;
         this.battle.actors.push( this.battle.originator );
         this.nextOriginator();
-        this.setStatusByNextActor();
-    };
-
-    /**
-     * Run a battle turn action.
-     * @param  {Function} turnAction Action to run for the turn
-     * @return {undefined}            Nothing
-     */
-    this.runTurn = function( turnAction ) {
-        turnAction.call( this );
+        this.setStateByNextActor();
     };
 
     /**
@@ -555,11 +604,11 @@ function _Engine() {
         }
         if ( this.battle.actors.length > 0 ) {
             this.nextActor();
-            this.nextTarget();
+            this.customAvailableTarget();
         } else {
             actor = this.battle.originator;
             console.log( actor.name + " won the battle" );
-            this.status = ST_IN_BATTLE_END;
+            this.state.set(ST_IN_BATTLE_END);
         }
     };
 
@@ -647,10 +696,10 @@ function _Engine() {
     };
 
     /**
-     * Run engine machine.
+     * Run engine machine turn.
      * @return {undefined} Nothing
      */
-    this.run = function() {
+    this.runTurn = function() {
         if ( this.actions ) {
             this.runActions();
         }
@@ -671,8 +720,8 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runBattleTurn = function() {
-        this.run();
-        this.runTurn( this.battleAttack );
+        this.nextTarget();
+        this.runTurn();
         this.logBattleActionResults();
         this.runTurnResult();
     };
@@ -682,7 +731,7 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runBattle = function() {
-        switch (this.status) {
+        switch (this.state.get()) {
             case ST_IN_BATTLE:
                 break;
             case ST_IN_BATTLE_WAITING_INPUT:
@@ -691,17 +740,27 @@ function _Engine() {
                 this.runBattleTurn();
                 break;
             case ST_IN_BATTLE_WAITING_AI:
-                this.selectNextAiAction();
-                this.status = ST_IN_BATTLE_RUN_AI;
+                this.customSelectNextAiAction();
+                this.state.next();
                 break;
             case ST_IN_BATTLE_RUN_AI:
                 this.runBattleTurn();
                 break;
             case ST_IN_BATTLE_END:
+                this.customAfterBattle();
                 break;
             default:
                 break;
         }
+    };
+
+    /**
+     * Initialize Game Engine
+     * @return {Boolean} true if engine was initialized properly, false else
+     */
+    this.init = function() {
+        this.state.reset();
+        return true;
     };
 }
 
@@ -712,6 +771,7 @@ function _Engine() {
 
 _Engine.ID = 0;
 var NS_GEngine = new _Engine();
+NS_GEngine.init();
 
 NS_Common.engine = NS_GEngine;
 NS_Action.engine = NS_GEngine;
