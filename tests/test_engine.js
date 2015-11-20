@@ -1,63 +1,52 @@
+//
 // ----- TEST METHODS -----
+//
 
 var userSteps = 0;
 
 function test_on_attack() {
-    if (NS_GEngine.state.get() === ST_IN_BATTLE_END) {
-        NS_UI.log('Battle has ended');
+    if ( NS_GEngine.state.get() === ST_IN_BATTLE_END ) {
+        NS_UI.log( "Battle has ended" );
     } else {
-        var attack = new NS_Action.attack();
-        NS_GEngine.addElement( "action", attack );
         NS_GEngine.state.next();
-        attack.active = true;
+        NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
     }
 }
 
 function test_on_move() {
     userSteps++;
-    var move = new NS_Action.move(userSteps);
-    NS_GEngine.addElement("action", move);
-    move.active = true;
-    if (userSteps == 5) {
-        var actionButton = document.getElementById( "action" );
-        var moveButton = document.getElementById( "move" );
-        actionButton.disabled = false;
-        moveButton.disabled = true;
-        NS_GEngine.initBattle();
+    if ( userSteps <= 5 ) {
+        NS_GEngine.addElement( "action", new NS_Action.move( userSteps ) ).active = true;
+    } else {
+        document.getElementById( "action" ).disabled = false;
+        document.getElementById( "move" ).disabled = true;
+        NS_GEngine.addElement( "action", new NS_Action.battle() ).active = true;
     }
 }
 
 function test_on_use() {
-    var use = new NS_Action.use('object');
-    NS_GEngine.addElement("action", use);
-    use.active = true;
+    NS_GEngine.addElement( "action", new NS_Action.use( "object", undefined, "yepes!" ) ).active = true;
 }
 
 function test_on_take() {
-    var take = new NS_Action.take('object');
-    NS_GEngine.addElement("action", take);
-    take.active = true;
+    NS_GEngine.addElement( "action", new NS_Action.take( "object" ) ).active = true;
 }
 
 function test_on_drop() {
-    var drop = new NS_Action.drop('object');
-    NS_GEngine.addElement("action", drop);
-    drop.active = true;
+    NS_GEngine.addElement( "action", new NS_Action.drop( "object" ) ).active = true;
 }
 
 function test_on_action() {
     var state = NS_GEngine.state.get();
-    switch(state) {
+    switch ( state ) {
         case NS_GEngine.state.NONE:
             break;
         case NS_GEngine.state.IN_BATTLE_WAITING_INPUT:
-            var attack = new NS_Action.attack();
-            NS_GEngine.addElement( "action", attack );
             NS_GEngine.state.next();
-            attack.active = true;
+            NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
             break;
         case NS_GEngine.state.IN_BATTLE_END:
-            NS_UI.log('Battle has ended');
+            NS_UI.log( "Battle has ended" );
             break;
         default:
             break;
@@ -88,7 +77,7 @@ function test_on_event() {
 }
 
 function test_on_engine() {
-    var jose = new NS_Actor.Actor( [ "jose", NS_Common.createAttributes( 100, 50, 5 ) ] );
+    var jose = new NS_Actor.Actor( [ "jose", NS_Common.createAttributes( 100, 50, 5 ), true, PLAYER ] );
     var goblin1 = new NS_Actor.Actor( [ "goblin1", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
     var goblin2 = new NS_Actor.Actor( [ "goblin2", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
 
@@ -129,19 +118,14 @@ function test_on_engine() {
     };
 
     NS_GEngine.customSelectNextAiAction = function() {
-        var attack = new NS_Action.attack();
-        NS_GEngine.addElement( "action", attack );
-        attack.active = true;
+        NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
     };
 
     NS_GEngine.customAfterBattle = function() {
-        var actionButton = document.getElementById( "action" );
-        var moveButton = document.getElementById( "move" );
-        actionButton.disabled = true;
-        moveButton.disabled = false;
+        document.getElementById( "action" ).disabled = true;
+        document.getElementById( "move" ).disabled = false;
     };
 
     NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
-    var actionButton = document.getElementById( "action" );
-    actionButton.disabled = true;
+    document.getElementById( "action" ).disabled = true;
 }

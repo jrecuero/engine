@@ -2,7 +2,6 @@ var PLAYER = "player";
 var ENEMY = "enemy";
 var NPC = "non playable character";
 
-
 /**
  * GObject represents any game object in the system.
  */
@@ -16,7 +15,6 @@ function GObject() {
 }
 GObject.ID = 0;
 
-
 /**
  * InheritKlass provides inherited functionality.
  *
@@ -29,12 +27,15 @@ function inheritKlass( parent, child ) {
     child.prototype.constructor = child;
 }
 
-
 /**
  * Common NameSpace functions.
  * @return {undefined} Nothing
  */
 function _Common() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
@@ -46,9 +47,9 @@ function _Common() {
             life: arguments[ 0 ],
             attack: arguments[ 1 ],
             defense: arguments[ 2 ],
-            damage: function( originator, target ) {
-                var damage = originator.attributes.attack - target.attributes.defense;
-                target.attributes.life -= damage;
+            damage: function( orig, tgt ) {
+                var damage = orig.attributes.attack - tgt.attributes.defense;
+                tgt.attributes.life -= damage;
             },
             isAlive: function() {
                 return ( this.life > 0 );
@@ -56,8 +57,21 @@ function _Common() {
         };
         return _;
     };
-}
 
+    /**
+     * Delete table based on the second given table.
+     * @param  {Array} table    Original table to delete entries
+     * @param  {Array} todelete Table with entries to delete
+     * @return {undefined} Nothing
+     */
+    this.deleteWith = function( table, todelete ) {
+        if ( todelete.length > 0 ) {
+            for ( var i = ( todelete.length - 1 ); i >= 0; i-- ) {
+                table.splice( todelete[ i ], 1 );
+            }
+        }
+    };
+}
 
 /**
  * User Interface
@@ -69,8 +83,8 @@ function _UserItf() {
      * @param  {String} str String to send to log
      * @return {undefined} Nothing
      */
-    this.log = function(str) {
-        console.log(str);
+    this.log = function( str ) {
+        console.log( str );
     };
 
     /**
@@ -78,8 +92,8 @@ function _UserItf() {
      * @param  {String} str String to send to debug
      * @return {undefined} Nothing
      */
-    this.debug = function(str) {
-        console.log(str);
+    this.debug = function( str ) {
+        console.log( str );
     };
 
     /**
@@ -87,17 +101,20 @@ function _UserItf() {
      * @param  {String} str String to prompt
      * @return {string} String entered in the prompt dialog
      */
-    this.prompt = function(str) {
-        return prompt(str);
+    this.prompt = function( str ) {
+        return prompt( str );
     };
 }
-
 
 /**
  * Action NameSpace function
  * @return {undefined} Nothing
  */
 function _Action() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
@@ -108,9 +125,11 @@ function _Action() {
     this.Action = function( args ) {
         GObject.apply( this, args );
         this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
-        this.callback = args && args[ 2 ] ? args[ 2 ] : undefined;
+        this.execute = args && args[ 2 ] ? args[ 2 ] : undefined;
         this.active = args && args[ 3 ] ? args[ 3 ] : false;
         this.remove = args && args[ 4 ] ? args[ 4 ] : true;
+        this.callback = args && args[ 5 ] ? args[ 5 ] : undefined;
+        this.cbArgs = args && args[ 6 ] ? args[ 6 ] : [];
     };
     inheritKlass( GObject, this.Action );
 
@@ -122,13 +141,13 @@ function _Action() {
     this.move = function( steps ) {
         this.steps = steps ? steps : 1;
         var args = [];
-        args.push( "move" );        // action name
-        args.push( "move" );        // action type
-        args.push( function() {     // action callback
+        args.push( "move" );        // Action name
+        args.push( "move" );        // Action type
+        args.push( function() {     // Action execute
             NS_UI.log( "you moved " + this.steps );
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.move );
@@ -141,13 +160,29 @@ function _Action() {
     this.use = function( obj ) {
         this.obj = obj ? obj : "";
         var args = [];
-        args.push( "use" );        // action name
-        args.push( "use" );        // action type
-        args.push( function() {    // action callback
+        args.push( "use" );     // Action name
+        args.push( "use" );     // Action type
+        args.push( function() {
+
+        // Action execute
             NS_UI.log( "you used " + this.obj );
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );     // Action active
+        args.push( true );      // Action remove after exec
+        if ( arguments && arguments[ 1 ] ) {
+
+            // Action callback user defined
+            args.push( arguments[ 1 ] );
+        } else {
+
+            // Action callback default
+            args.push( function( args ) {
+                NS_UI.log( "used callback with " + args[ 0 ] );
+            } );
+        }
+
+        // Action callback argumnets
+        args.push( Array.prototype.slice.call( arguments ).slice( 2 ) );
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.use );
@@ -160,13 +195,13 @@ function _Action() {
     this.take = function( obj ) {
         this.obj = obj ? obj : "";
         var args = [];
-        args.push( "take" );        // action name
-        args.push( "take" );        // action type
-        args.push( function() {    // action callback
+        args.push( "take" );        // Action name
+        args.push( "take" );        // Action type
+        args.push( function() {    // Action execute
             NS_UI.log( "you took " + this.obj );
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.take );
@@ -179,36 +214,52 @@ function _Action() {
     this.drop = function( obj ) {
         this.obj = obj ? obj : "";
         var args = [];
-        args.push( "drop" );        // action name
-        args.push( "drop" );        // action type
-        args.push( function() {    // action callback
+        args.push( "drop" );        // Action name
+        args.push( "drop" );        // Action type
+        args.push( function() {    // Action execute
             NS_UI.log( "you dropped " + this.obj );
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.drop );
 
     /**
      * Attack Action class for attack action.
-     * TODO: This method has to give up a lot of functionality to be moved to the
-     * engine.
+     * TODO: This method has to give up a lot of functionality to be moved to
+     *  the engine.
      * @return {undefined} Nothing
      */
     this.attack = function() {
         var args = [];
-        args.push( "attack" );      // action name
-        args.push( "battle" );      // actioon type
-        args.push( function() {     // action callback
+        args.push( "attack" );      // Action name
+        args.push( "battle" );      // Actioon type
+        args.push( function() {     // Action execute
             NS_GEngine.battleAttack();
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.attack );
 
+    /**
+     * Start Battle Action class for battle action.
+     * @return {undefined} Nothing
+     */
+    this.battle = function() {
+        var args = [];
+        args.push( "battle" );      // Action name
+        args.push( "battle" );      // Actioon type
+        args.push( function() {     // Action execute
+            NS_GEngine.initBattle();
+        } );
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
+        NS_Action.Action.call( this, args );
+    };
+    inheritKlass( this.Action, this.battle );
 
     /**
      * Defense Action class for defense action.
@@ -216,24 +267,27 @@ function _Action() {
      */
     this.defense = function() {
         var args = [];
-        args.push( "defense" );     // action name
-        args.push( "battle" );      // action type
-        args.push( function() {     // action callback
+        args.push( "defense" );     // Action name
+        args.push( "battle" );      // Action type
+        args.push( function() {     // Action execute
             NS_UI.log( "you defend" );
         } );
-        args.push( false );         // action active
-        args.push( true );          // action remove after exec
+        args.push( false );         // Action active
+        args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
     };
     inheritKlass( this.Action, this.defense );
 }
-
 
 /**
  * Actor NameSpace function.
  * @return {undefined} Nothing
  */
 function _Actor() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
@@ -267,12 +321,15 @@ function _Actor() {
     inheritKlass( GObject, this.Actor );
 }
 
-
 /**
  * Evento NameSpace function.
  * @return {undefined} Nothing
  */
 function _Evento() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
@@ -294,9 +351,9 @@ function _Evento() {
             this.steps.push( step );
         };
 
-        // Steps have to be created as a tree, so they can be traversed. In that way
-        // it will be possible to have differnt branches. Every event should be
-        // added in the proper way.
+        // Steps have to be created as a tree, so they can be traversed. In that
+        //  way it will be possible to have differnt branches. Every event
+        //  should be added in the proper way.
         // We could have different types of steps:
         // - Sequential step
         // - Decission steps (n number of options)
@@ -311,7 +368,6 @@ function _Evento() {
         };
     };
     inheritKlass( GObject, this.Evento );
-
 
     /**
      * Set a game event to be used in the game engine.
@@ -356,16 +412,20 @@ function _Evento() {
     };
 }
 
-
 /**
  * Objecto NameSpace function.
  * @return {undefined} Nothing
  */
 function _Objeto() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
-     * Objecto class for any object (item, usable, equipment, ...) used in the game.
+     * Objecto class for any object (item, usable, equipment, ...) used in the
+     * game.
      * @param {Array} args Arguments required for the constructor
      * @return {undefined} Nothing
      */
@@ -375,12 +435,15 @@ function _Objeto() {
     inheritKlass( GObject, this.Objeto );
 }
 
-
 /**
  * Scene NameSpace function.
  * @return {undefined} Nothing
  */
 function _Scene() {
+    /**
+     * Game engine instance
+     * @type {_Engine}
+     */
     this.engine = undefined;
 
     /**
@@ -394,7 +457,6 @@ function _Scene() {
     inheritKlass( GObject, this.Scene );
 }
 
-
 // Create all namespace to be used in the application.
 var NS_UI = new _UserItf();
 var NS_Common = new _Common();
@@ -403,7 +465,6 @@ var NS_Actor = new _Actor();
 var NS_Evento = new _Evento();
 var NS_Objeto = new _Objeto();
 var NS_Scene = new _Scene();
-
 
 /**
  * Game Engine provides all the functionality required for running the Game.
@@ -455,34 +516,34 @@ function _Engine() {
         WAITING: "waiting",
         NONE: "none",
         value: undefined,
-        set: function(val) {
+        set: function( val ) {
             this.value = val;
         },
         get: function() {
             return this.value;
         },
         reset: function() {
-            this.set(this.NONE);
+            this.set( this.NONE );
         },
         next: function() {
-            switch(this.value) {
+            switch ( this.value ) {
                 case this.IN_BATTLE:
-                    this.set(this.IN_BATTLE_WAITING_INPUT);
+                    this.set( this.IN_BATTLE_WAITING_INPUT );
                     break;
                 case this.IN_BATTLE_WAITING_INPUT:
-                    this.set(this.IN_BATTLE_RUN_INPUT);
+                    this.set( this.IN_BATTLE_RUN_INPUT );
                     break;
                 case this.IN_BATTLE_RUN_INPUT:
-                    this.set(this.IN_BATTLE_WAITING_AI);
+                    this.set( this.IN_BATTLE_WAITING_AI );
                     break;
                 case this.IN_BATTLE_WAITING_AI:
-                    this.set(this.IN_BATTLE_RUN_AI);
+                    this.set( this.IN_BATTLE_RUN_AI );
                     break;
                 case this.IN_BATTLE_RUN_AI:
-                    this.set(this.IN_BATTLE_END);
+                    this.set( this.IN_BATTLE_END );
                     break;
                 case this.IN_BATTLE_END:
-                    this.set(this.NONE);
+                    this.set( this.NONE );
                     break;
                 default:
                     break;
@@ -579,11 +640,21 @@ function _Engine() {
      * @type {Object}
      */
     this.elementTable = {
-        actor: { table: this.actors, klass: NS_Actor.Actor, custom: this.customActor },
-        scene: { table: this.scenes, klass: NS_Scene.Scene, custom: undefined },
-        objeto: { table: this.objetos, klass: NS_Objeto.Objeto, custom: undefined },
-        evento: { table: this.eventos, klass: NS_Evento.Evento, custom: undefined },
-        action: { table: this.actions, klass: NS_Action.Action, custom: undefined }
+        actor: { table: this.actors,
+                 klass: NS_Actor.Actor,
+                 custom: this.customActor },
+        scene: { table: this.scenes,
+                 klass: NS_Scene.Scene,
+                 custom: undefined },
+        objeto: { table: this.objetos,
+                  klass: NS_Objeto.Objeto,
+                  custom: undefined },
+        evento: { table: this.eventos,
+                  klass: NS_Evento.Evento,
+                  custom: undefined },
+        action: { table: this.actions,
+                  klass: NS_Action.Action,
+                  custom: undefined }
     };
 
     /**
@@ -638,16 +709,15 @@ function _Engine() {
         this.battle.target = target;
     };
 
-
     /**
      * Set engine state based on the battle turn (next originator actor side).
      * @return {undefined} Nothing
      */
     this.setStateByNextActor = function() {
         if ( this.battle.turn === PLAYER ) {
-            this.state.set(this.state.IN_BATTLE_WAITING_INPUT);
+            this.state.set( this.state.IN_BATTLE_WAITING_INPUT );
         } else {
-            this.state.set(this.state.IN_BATTLE_WAITING_AI);
+            this.state.set( this.state.IN_BATTLE_WAITING_AI );
         }
     };
 
@@ -682,27 +752,21 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runTurnResult = function() {
-        var toDelete = [];
-        var actor;
-        for ( var i = 0; i < this.battle.actors.length; i++ ) {
-            if ( this.battle.actors[ i ].isAlive() === false ) {
-                toDelete.push( i );
-            }
-        }
-        if ( toDelete.length > 0 ) {
-            for ( i = ( toDelete.length - 1 ); i >= 0; i-- ) {
-                actor = this.battle.actors[ toDelete[ i ] ];
-                NS_UI.log( actor.name + " is dead" );
-                this.battle.actors.splice( toDelete[ i ], 1 );
-            }
-        }
+
+        // Find all actors that are not alive and delete then form the table
+        // of active battlers.
+        var toDelete = this.battle.actors.filter( function( x ) {
+            return !x.isAlive();
+        } );
+        NS_Common.deleteWith( this.battle.actors, toDelete );
+
         if ( this.battle.actors.length > 0 ) {
             this.nextActor();
             this.customAvailableTarget();
         } else {
-            actor = this.battle.originator;
+            var actor = this.battle.originator;
             NS_UI.log( actor.name + " won the battle" );
-            this.state.set(this.state.IN_BATTLE_END);
+            this.state.set( this.state.IN_BATTLE_END );
         }
     };
 
@@ -780,9 +844,12 @@ function _Engine() {
         for ( var i = 0; i < this.actions.length; i++ ) {
             action = this.actions[ i ];
             if ( action.active ) {
-                action.callback.call( action );
+                action.execute.call( action );
+                if ( action.callback ) {
+                    action.callback.call( action, action.cbArgs );
+                }
                 action.active = false;
-                if (action.remove) {
+                if ( action.remove ) {
                     toremove.push( i );
                 }
             }
@@ -809,7 +876,8 @@ function _Engine() {
     this.logBattleActionResults = function() {
         var originator = this.battle.originator;
         var target = this.battle.target;
-        NS_UI.log( originator.name + " attack " + target.name + "[" + target.attributes.life + "]" );
+        NS_UI.log( originator.name + " attack " + target.name +
+                  "[" + target.attributes.life + "]" );
     };
 
     /**
@@ -828,7 +896,7 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runBattle = function() {
-        switch (this.state.get()) {
+        switch ( this.state.get() ) {
             case this.state.IN_BATTLE:
                 break;
             case this.state.IN_BATTLE_WAITING_INPUT:
@@ -857,7 +925,7 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.run = function() {
-        if (this.battle.active) {
+        if ( this.battle.active ) {
             this.runBattle();
         } else {
             this.runTurn();
@@ -874,7 +942,6 @@ function _Engine() {
     };
 }
 
-
 // ----------------------------------------------------------------------------
 // GAME ENGINE CONFIGURATION
 // ----------------------------------------------------------------------------
@@ -889,12 +956,6 @@ NS_Actor.engine = NS_GEngine;
 NS_Evento.engine = NS_GEngine;
 NS_Objeto.engine = NS_GEngine;
 NS_Scene.engine = NS_GEngine;
-
-// Create Basic actions and add them to the engine.
-// var move = new MoveAction();
-// var attack = new AttackAction();
-// var defense = new DefenseAction();
-// NS_GEngine.addElements( "action", [ move, attack, defense ] );
 
 // Set the interval the engine will run again.
 setInterval( function() { NS_GEngine.run(); }, 100 );
