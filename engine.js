@@ -339,77 +339,56 @@ function _Evento() {
      */
     this.Evento = function( args ) {
         GObject.apply( this, args );
-        this.steps = [];
+        this.actions = [];
         this.conditions = [];
+        var __evento = this;
 
         /**
-         * Add step to the event
-         * @param {Step} step Event step.
+         * Evento schedule next action in the evento.
+         * @type {Action}
+         */
+        this.actionScheduleNextAction =
+            new NS_Action.Action( [ "evento schedule",
+                                    "evento",
+                                    function() {
+                                        setTimeout( function() {
+                                            __evento.runAction();
+                                        }, 1 );
+                                    },
+                                    false,
+                                    true ] );
+
+        /**
+         * Add an action to the event
+         * @param {_Action} action Event action.
          * @return {undefined} Nothing
          */
-        this.addStep = function( step ) {
-            this.steps.push( step );
+        this.addAction = function( action ) {
+            this.actions.push( action );
         };
 
-        // Steps have to be created as a tree, so they can be traversed. In that
-        //  way it will be possible to have differnt branches. Every event
-        //  should be added in the proper way.
-        // We could have different types of steps:
-        // - Sequential step
-        // - Decission steps (n number of options)
-        // - Loop steps (stablish an start and and point)
-        this.runAllSteps = function() {
-            for ( var i = 0; i < this.steps.length; i++ ) {
-               var result = this.steps[ i ].execute.call( this.steps[ i ] );
-               if ( result && this.steps[ i ] ) {
-                    this.steps[ i ].processing.call( this, result );
+        /**
+         * Run all even actions.
+         * @return {undefined} Nothing
+         */
+        this.runAllActions = function() {
+            for ( var i = 0; i < this.actions.length; i++ ) {
+               var result = this.actions[ i ].execute.call( this.actions[ i ] );
+               if ( result && this.actions[ i ] ) {
+                    this.actions[ i ].processing.call( this, result );
                }
+            }
+        };
+
+        this.runAction = function() {
+            if (this.actions.length) {
+                var action = this.actions.shift();
+                NS_Evento.engine.addElement( "action", action ).active = true;
+                NS_Evento.engine.addElement( "action", this.actionScheduleNextAction ).active = true;
             }
         };
     };
     inheritKlass( GObject, this.Evento );
-
-    /**
-     * Set a game event to be used in the game engine.
-     * @param {Function} executeCb    Execute the event
-     * @param {Function} processingCb Process the event result
-     * @return {Object} Event object
-    */
-    this.setGEvent = function( executeCb, processingCb ) {
-        var _ = {
-            execute: executeCb,
-            processing: processingCb
-        };
-        return _;
-    };
-
-    /**
-     * Create a new Prompt Event to be used as a game event.
-     * @param {String} message String to be used in the prompt window
-     * @return {undefined} Nothing
-     */
-    this.setEventPrompt = function( message ) {
-        return this.setGEvent( function( msg ) {
-            return function() {
-                return NS_UI.prompt( msg );
-            };
-        }( message ), function( result ) {
-            NS_UI.log( result );
-        } );
-    };
-
-    /**
-     * Create a new Dialog Event to be used as a game event.
-     * @param {String} message String to be used in the console dialog
-     * @return {undefined} Nothing
-     */
-    this.setEventDialog = function( message ) {
-        return this.setGEvent( function( msg ) {
-            return function() {
-                NS_UI.log( msg );
-            };
-        }( message ), undefined );
-    };
 }
 
 /**
@@ -658,25 +637,6 @@ function _Engine() {
     };
 
     /**
-     * Standard battle attack.
-     * @return {undefined} Nothing
-     */
-    this.battleAttack = function() {
-        this.battle.originator.damage( this.battle.target );
-    };
-
-    /**
-     * Set the next originator from the battle actors.
-     * @return {undefined} Nothing
-     */
-    this.nextOriginator = function() {
-        actor = this.battle.actors.shift();
-        actor.turn = true;
-        this.battle.originator = actor;
-        this.battle.turn = this.battle.originator.playableSide;
-    };
-
-    /**
      * Select the next target for the turn.
      * @type {Function}
      */
@@ -701,6 +661,25 @@ function _Engine() {
     this.customAvailableTarget = undefined;
 
     /**
+     * Standard battle attack.
+     * @return {undefined} Nothing
+     */
+    this.battleAttack = function() {
+        this.battle.originator.damage( this.battle.target );
+    };
+
+    /**
+     * Set the next originator from the battle actors.
+     * @return {undefined} Nothing
+     */
+    this.nextOriginator = function() {
+        actor = this.battle.actors.shift();
+        actor.turn = true;
+        this.battle.originator = actor;
+        this.battle.turn = this.battle.originator.playableSide;
+    };
+
+    /**
      * Set the next target for the the turn.
      * @return {undefined} Nothing
      */
@@ -713,7 +692,7 @@ function _Engine() {
      * Set engine state based on the battle turn (next originator actor side).
      * @return {undefined} Nothing
      */
-    this.setStateByNextActor = function() {
+    this.setStateByBattleTurnPlayableSide = function() {
         if ( this.battle.turn === PLAYER ) {
             this.state.set( this.state.IN_BATTLE_WAITING_INPUT );
         } else {
@@ -733,7 +712,7 @@ function _Engine() {
         this.battle.active = true;
         this.nextOriginator();
         this.customAvailableTarget();
-        this.setStateByNextActor();
+        this.setStateByBattleTurnPlayableSide();
     };
 
     /**
@@ -744,30 +723,7 @@ function _Engine() {
         this.battle.originator.turn = false;
         this.battle.actors.push( this.battle.originator );
         this.nextOriginator();
-        this.setStateByNextActor();
-    };
-
-    /**
-     * Run turn results.
-     * @return {undefined} Nothing
-     */
-    this.runTurnResult = function() {
-
-        // Find all actors that are not alive and delete then form the table
-        // of active battlers.
-        var toDelete = this.battle.actors.filter( function( x ) {
-            return !x.isAlive();
-        } );
-        NS_Common.deleteWith( this.battle.actors, toDelete );
-
-        if ( this.battle.actors.length > 0 ) {
-            this.nextActor();
-            this.customAvailableTarget();
-        } else {
-            var actor = this.battle.originator;
-            NS_UI.log( actor.name + " won the battle" );
-            this.state.set( this.state.IN_BATTLE_END );
-        }
+        this.setStateByBattleTurnPlayableSide();
     };
 
     /**
@@ -840,9 +796,9 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runActions = function() {
-        var toremove = [];
+        var toDelete = [];
         for ( var i = 0; i < this.actions.length; i++ ) {
-            action = this.actions[ i ];
+            var action = this.actions[ i ];
             if ( action.active ) {
                 action.execute.call( action );
                 if ( action.callback ) {
@@ -850,20 +806,18 @@ function _Engine() {
                 }
                 action.active = false;
                 if ( action.remove ) {
-                    toremove.push( i );
+                    toDelete.push( i );
                 }
             }
         }
-        for ( var r in toremove ) {
-            this.actions.splice( r, 1 );
-        }
+        NS_Common.deleteWith( this.actions, toDelete );
     };
 
     /**
      * Run engine machine turn.
      * @return {undefined} Nothing
      */
-    this.runTurn = function() {
+    this.runActionsTurn = function() {
         if ( this.actions ) {
             this.runActions();
         }
@@ -873,7 +827,7 @@ function _Engine() {
      * Console log information with battle action results.
      * @return {undefined} Nothing
      */
-    this.logBattleActionResults = function() {
+    this.logBattleRunResultTurn = function() {
         var originator = this.battle.originator;
         var target = this.battle.target;
         NS_UI.log( originator.name + " attack " + target.name +
@@ -881,14 +835,37 @@ function _Engine() {
     };
 
     /**
+     * Run turn results.
+     * @return {undefined} Nothing
+     */
+    this.execBattleRunResultTurn = function() {
+
+        // Find all actors that are not alive and delete then form the table
+        // of active battlers.
+        var toDelete = this.battle.actors.filter( function( x ) {
+            return !x.isAlive();
+        } );
+        NS_Common.deleteWith( this.battle.actors, toDelete );
+
+        if ( this.battle.actors.length > 0 ) {
+            this.nextActor();
+            this.customAvailableTarget();
+        } else {
+            var actor = this.battle.originator;
+            NS_UI.log( actor.name + " won the battle" );
+            this.state.set( this.state.IN_BATTLE_END );
+        }
+    };
+
+    /**
      * Run battle turn.
      * @return {undefined} Nothing
      */
-    this.runBattleTurn = function() {
+    this.execBattleRunTurn = function() {
         this.nextTarget();
-        this.runTurn();
-        this.logBattleActionResults();
-        this.runTurnResult();
+        this.runActionsTurn();
+        this.logBattleRunResultTurn();
+        this.execBattleRunResultTurn();
     };
 
     /**
@@ -902,14 +879,14 @@ function _Engine() {
             case this.state.IN_BATTLE_WAITING_INPUT:
                 break;
             case this.state.IN_BATTLE_RUN_INPUT:
-                this.runBattleTurn();
+                this.execBattleRunTurn();
                 break;
             case this.state.IN_BATTLE_WAITING_AI:
                 this.customSelectNextAiAction();
                 this.state.next();
                 break;
             case this.state.IN_BATTLE_RUN_AI:
-                this.runBattleTurn();
+                this.execBattleRunTurn();
                 break;
             case this.state.IN_BATTLE_END:
                 this.customAfterBattle();
@@ -924,11 +901,11 @@ function _Engine() {
      * Run engine every tick
      * @return {undefined} Nothing
      */
-    this.run = function() {
+    this.runTick = function() {
         if ( this.battle.active ) {
             this.runBattle();
         } else {
-            this.runTurn();
+            this.runActionsTurn();
         }
     };
 
@@ -958,4 +935,4 @@ NS_Objeto.engine = NS_GEngine;
 NS_Scene.engine = NS_GEngine;
 
 // Set the interval the engine will run again.
-setInterval( function() { NS_GEngine.run(); }, 100 );
+setInterval( function() { NS_GEngine.runTick(); }, 100 );

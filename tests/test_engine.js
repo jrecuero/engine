@@ -70,10 +70,14 @@ function test_on_multiple_actions() {
 }
 
 function test_on_event() {
-    var e1 = new NS_Evento.Evento( [ "first evento" ] );
-    e1.addStep( NS_Evento.setEventPrompt( "Name?" ) );
-    e1.addStep( NS_Evento.setEventDialog( "Have a nice day" ) );
-    e1.runAllSteps();
+    var e = new NS_Evento.Evento( [ "multiple moves evento" ] );
+    e.addAction( new NS_Action.move( 1 ) );
+    e.addAction( new NS_Action.take( 'radio' ) );
+    e.addAction( new NS_Action.move( 2 ) );
+    e.addAction( new NS_Action.use( 'radio', undefined, 'fm' ) );
+    e.addAction( new NS_Action.move( 3 ) );
+    e.addAction( new NS_Action.drop( 'radio' ) );
+    e.runAction();
 }
 
 function test_on_engine() {
