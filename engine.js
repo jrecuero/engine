@@ -14,7 +14,7 @@ function _Engine() {
      * Generate the next available engine ID.
      * @return {int} Next available engine ID
      */
-    this.getNextEngId = function() {
+    var getNextEngId = function() {
         _Engine.ID++;
         return _Engine.ID;
     };
@@ -27,7 +27,7 @@ function _Engine() {
      */
     var lookForIn = function( id, table ) {
         if ( id && ( id !== 0 ) ) {
-            for ( var i = 0; i < table.length; i++ ) {
+            for ( var i in table ) {
                 if ( table[ i ].engId == id ) {
                     return true;
                 }
@@ -153,7 +153,7 @@ function _Engine() {
          */
         getActors: function( playableSide ) {
             var result = [];
-            for ( var i = 0; i < this.actors.length; i++ ) {
+            for ( var i in this.actors ) {
                 var actor = this.actors[ i ];
                 if ( actor.playableSide == playableSide ) {
                     result.push( actor );
@@ -357,7 +357,7 @@ function _Engine() {
     this.newElement = function( subject, args ) {
         elemTable = this.elementTable[ subject ];
         var newElem = new elemTable.klass( args );
-        newElem.engId = this.getNextEngId();
+        newElem.engId = getNextEngId();
         elemTable.table.push( newElem );
         return newElem;
     };
@@ -374,7 +374,7 @@ function _Engine() {
             return null;
         } else {
             if ( element.engId === undefined ) {
-                element.engId = this.getNextEngId();
+                element.engId = getNextEngId();
             }
             if ( elemTable.custom ) {
                 elemTable.custom.call( this, element );
@@ -404,8 +404,22 @@ function _Engine() {
      */
     this.addElements = function( subject, elements ) {
         var result = [];
-        for ( var i = 0; i < elements.length; i++ ) {
+        for ( var i in elements ) {
             result.push( this.addElement( subject, elements[ i ] ) );
+        }
+        return result;
+    };
+
+    /**
+     * Delete an array of already added elements to the proper element table.
+     * @param  {String} subject  Element table string identifier
+     * @param  {Array} elements Array with elements to be removed
+     * @return {Array} Array of element instaces removed
+     */
+    this.delElements = function( subject, elements ) {
+        var result = [];
+        for ( var i in elements ) {
+            result.push( this.delElement( subject, elements[ i ] ) );
         }
         return result;
     };
@@ -416,7 +430,7 @@ function _Engine() {
      */
     this.runActions = function() {
         var toDelete = [];
-        for ( var i = 0; i < this.actions.length; i++ ) {
+        for ( var i in this.actions ) {
             var action = this.actions[ i ];
             if ( action.active ) {
                 action.execute.call( action );
