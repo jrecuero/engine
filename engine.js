@@ -311,7 +311,7 @@ function _Engine() {
         this.battle.actors = [];
         if ( this.actors.length <= 1) {
             NS_UI.error( "Not enough actors for battle: " + this.actors.length );
-            return;
+            return false;
         }
         for ( var i = 0; i < this.actors.length; i++ ) {
             this.battle.actors.push( this.actors[ i ] );
@@ -320,6 +320,7 @@ function _Engine() {
         this.nextOriginator();
         this.customAvailableTarget();
         this.setStateByBattleTurnPlayableSide();
+        return true;
     };
 
     /**
@@ -433,9 +434,16 @@ function _Engine() {
         for ( var i in this.actions ) {
             var action = this.actions[ i ];
             if ( action.active ) {
-                action.execute.call( action );
-                if ( action.callback ) {
-                    action.callback.call( action, action.cbArgs );
+                var result = action.execute.call( action );
+                if ( result ) {
+                    if ( action.callback ) {
+                        action.callback.call( action, action.cbArgs );
+                    }
+                } else {
+                    NS_UI.error( 'action returns a non true result' );
+                    if ( action.errorCb ) {
+                        action.errorCb.call( action, action.errorCbArgs );
+                    }
                 }
                 action.active = false;
                 if ( action.remove ) {

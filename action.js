@@ -30,6 +30,8 @@ function _Action() {
         this.remove = args && args[ 4 ] ? args[ 4 ] : true;
         this.callback = args && args[ 5 ] ? args[ 5 ] : undefined;
         this.cbArgs = args && args[ 6 ] ? args[ 6 ] : [];
+        this.errorCb = args && args[ 7 ] ? args[ 7 ] : undefined;
+        this.errorCbArgs = args && args[ 8 ] ? args[ 8 ] : [];
     };
     inheritKlass( GObject, this.Action );
 
@@ -45,6 +47,7 @@ function _Action() {
         args.push( "move" );        // Action type
         args.push( function() {     // Action execute
             NS_UI.log( "you moved " + this.steps );
+            return true;
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
@@ -63,18 +66,16 @@ function _Action() {
         args.push( "use" );     // Action name
         args.push( "use" );     // Action type
         args.push( function() {
-
         // Action execute
             NS_UI.log( "you used " + this.obj );
+            return true;
         } );
         args.push( false );     // Action active
         args.push( true );      // Action remove after exec
         if ( arguments && arguments[ 1 ] ) {
-
             // Action callback user defined
             args.push( arguments[ 1 ] );
         } else {
-
             // Action callback default
             args.push( function( args ) {
                 NS_UI.log( "used callback with " + args[ 0 ] );
@@ -99,6 +100,7 @@ function _Action() {
         args.push( "take" );        // Action type
         args.push( function() {    // Action execute
             NS_UI.log( "you took " + this.obj );
+            return true;
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
@@ -118,6 +120,7 @@ function _Action() {
         args.push( "drop" );        // Action type
         args.push( function() {    // Action execute
             NS_UI.log( "you dropped " + this.obj );
+            return true;
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
@@ -137,6 +140,7 @@ function _Action() {
         args.push( "battle" );      // Actioon type
         args.push( function() {     // Action execute
             NS_GEngine.battleAttack();
+            return true;
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
@@ -153,7 +157,7 @@ function _Action() {
         args.push( "battle" );      // Action name
         args.push( "battle" );      // Actioon type
         args.push( function() {     // Action execute
-            NS_GEngine.initBattle();
+            return NS_GEngine.initBattle();
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
@@ -171,6 +175,7 @@ function _Action() {
         args.push( "battle" );      // Action type
         args.push( function() {     // Action execute
             NS_UI.log( "you defend" );
+            return true;
         } );
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec

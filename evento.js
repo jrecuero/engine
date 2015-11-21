@@ -39,6 +39,7 @@ function _Evento() {
                                         setTimeout( function() {
                                             __evento.runAction();
                                         }, 1 );
+                                        return true;
                                     },
                                     false,
                                     true ] );

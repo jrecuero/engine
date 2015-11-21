@@ -66,11 +66,16 @@ function test_event_two_goblin_battle() {
                                                             "actor",
                                                             function() {
                                                                 NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
+                                                                return true;
                                                             },
                                                             false,
                                                             true ] );
-            NS_GEngine.addElement( "action", eventCreateActors ).active = true;
-            NS_GEngine.addElement( "action", new NS_Action.battle() ).active = true;
+            // NS_GEngine.addElement( "action", eventCreateActors ).active = true;
+            var actionBattle = new NS_Action.battle();
+            actionBattle.errorCb = function() {
+                NS_UI.log( 'error has been notified' );
+            };
+            NS_GEngine.addElement( "action", actionBattle ).active = true;
         }
     };
 
