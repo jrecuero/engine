@@ -26,8 +26,8 @@ function _Action() {
         GObject.apply( this, args );
         this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
         this.execute = args && args[ 2 ] ? args[ 2 ] : undefined;
-        this.active = args && args[ 3 ] ? args[ 3 ] : false;
-        this.remove = args && args[ 4 ] ? args[ 4 ] : true;
+        this.active = args && args[ 3 ] !== undefined ? args[ 3 ] : false;
+        this.remove = args && args[ 4 ] !== undefined ? args[ 4 ] : true;
         this.callback = args && args[ 5 ] ? args[ 5 ] : undefined;
         this.cbArgs = args && args[ 6 ] ? args[ 6 ] : [];
         this.errorCb = args && args[ 7 ] ? args[ 7 ] : undefined;

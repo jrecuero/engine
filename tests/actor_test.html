@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QUnit Engine Tests: Actor Module</title>
+        <link rel="stylesheet" type="text/css" href="qunit.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../actor.js" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+        QUnit.test( "Actor test", function( assert ) {
+            var attrs = NS_Common.createAttributes( 100, 90, 10 );
+            var actor = new NS_Actor.Actor( [ 'me', attrs, true, PLAYER ] );
+            assert.ok( actor.name === 'me', "Actor name correct" );
+            assert.equal( actor.objId, 2, "Actor objId correct" );
+            assert.equal( actor.attributes.life, 100, "Actor life correct" );
+            assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
+            assert.equal( actor.attributes.defense, 10, "Actor defense correct" );
+            assert.ok( actor.playable, "Actor playable correct" );
+            assert.equal( actor.playableSide, PLAYER, "Actor playable side correct" );
+
+            var enemy = new NS_Actor.Actor( [ 'me',
+                                              NS_Common.createAttributes( 100, 50, 10 ),
+                                              true,
+                                              PLAYER ] );
+            var damage = actor.damage( enemy );
+            assert.equal( damage, 80, "Actor damage enemy correct" );
+            assert.equal( enemy.attributes.life, 20, "Enemy life after first damage correct" );
+            assert.ok( actor.isAlive(), "Actor is alive" );
+            assert.ok( enemy.isAlive(), "Enemy is alive after first damage" );
+            damage = actor.damage( enemy );
+            assert.equal( enemy.attributes.life, -60, "Enemy life after second damage correct" );
+            assert.notOk( enemy.isAlive(), "Enemy is dead after second damage" );
+        });
+        </script>
+    </body>
+</html>

@@ -1,7 +1,3 @@
-var PLAYER = "player";
-var ENEMY = "enemy";
-var NPC = "non playable character";
-
 /**
  * Game Engine provides all the functionality required for running the Game.
  *

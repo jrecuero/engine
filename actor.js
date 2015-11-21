@@ -34,7 +34,7 @@ function _Actor() {
          * @return {undefined} Nothing
          */
         this.damage = function( target ) {
-            this.attributes.damage( this, target );
+            return this.attributes.damage( target );
         };
 
         /**

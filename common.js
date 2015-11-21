@@ -1,3 +1,7 @@
+var PLAYER = "player";
+var ENEMY = "enemy";
+var NPC = "non playable character";
+
 /**
  * GObject represents any game object in the system.
  */
@@ -51,9 +55,10 @@ function _Common() {
             life: arguments[ 0 ],
             attack: arguments[ 1 ],
             defense: arguments[ 2 ],
-            damage: function( orig, tgt ) {
-                var damage = orig.attributes.attack - tgt.attributes.defense;
+            damage: function( tgt ) {
+                var damage = this.attack - tgt.attributes.defense;
                 tgt.attributes.life -= damage;
+                return damage;
             },
             isAlive: function() {
                 return ( this.life > 0 );

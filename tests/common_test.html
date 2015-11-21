@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QUnit Engine Tests: Common Module</title>
+        <link rel="stylesheet" type="text/css" href="qunit.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+        QUnit.test( "GObject test", function( assert ) {
+            var obj = new GObject( 'newly' );
+            assert.ok( obj.name === "newly", "Name is correct" );
+            assert.equal( obj.objId, 1, "Object ID is correct" );
+        });
+
+        QUnit.test( "Attributes test", function( assert ) {
+            var originator = {};
+            originator.attributes = new NS_Common.createAttributes( 100, 90, 80 );
+            assert.ok( originator.attributes.life === 100, "originator life correct" );
+            assert.ok( originator.attributes.attack === 90, "originator attack correct" );
+            assert.ok( originator.attributes.defense === 80, "originator defense correct" );
+
+            var target = {};
+            target.attributes = new NS_Common.createAttributes( 100, 40, 30 );
+            assert.ok( target.attributes.life === 100, "target life correct" );
+            assert.ok( target.attributes.attack === 40, "target attack correct" );
+            assert.ok( target.attributes.defense === 30, "target defense correct" );
+
+            assert.ok( originator.attributes.damage( target) === 60, "damage correct" );
+            assert.ok( target.attributes.life === 40, "target life correct after damage" );
+            assert.ok( target.attributes.isAlive(), "target is alive" );
+            assert.ok( originator.attributes.damage( target) === 60, "damage correct" );
+            assert.ok( target.attributes.life === -20, "target life correct after damage" );
+            assert.ok( !target.attributes.isAlive(), "target is dead" );
+        });
+
+        QUnit.test( "Other functions test", function( assert ) {
+            var table = [ 1, 2, 3, 4, 5 ];
+            var toDelete = [ 2, 4 ];
+            NS_Common.deleteWith( table, toDelete );
+            assert.deepEqual( table, [ 1, 2, 4 ], "deleteWith correct" );
+        });
+        </script>
+    </body>
+</html>
