@@ -2,9 +2,6 @@
 // ----- TEST METHODS -----
 //
 
-var STEPS_TO_BATTLE = 3;
-var userSteps = 0;
-
 function test_on_attack() {
     if ( NS_GEngine.state.get() === ST_IN_BATTLE_END ) {
         NS_UI.log( "Battle has ended" );
@@ -42,6 +39,10 @@ function test_event_two_goblin_battle() {
     var goblin1;
     var goblin2;
     var targetSelect;
+    var STEPS_TO_BATTLE = 3;
+    var userSteps = 0;
+    var MAX_BATTLE_COUNT = 1;
+    var battleCount = 0;
 
     var removeAllTargets = function() {
         targetSelect = document.getElementById( "target" );
@@ -65,15 +66,27 @@ function test_event_two_goblin_battle() {
             var eventCreateActors = new NS_Action.Action( [ "create actors",
                                                             "actor",
                                                             function() {
-                                                                NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
+                                                                if ( battleCount === MAX_BATTLE_COUNT ) {
+                                                                    NS_GEngine.addElements( "actor", [ jose ] );
+                                                                } else {
+                                                                    NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
+                                                                }
                                                                 return true;
                                                             },
                                                             false,
                                                             true ] );
-            // NS_GEngine.addElement( "action", eventCreateActors ).active = true;
+            NS_GEngine.addElement( "action", eventCreateActors ).active = true;
             var actionBattle = new NS_Action.battle();
+            actionBattle.callback = function() {
+                battleCount++;
+            };
             actionBattle.errorCb = function() {
-                NS_UI.log( 'error has been notified' );
+                NS_UI.log( 'goblins are already dead.' );
+                userStep = 0;
+                removeAllTargets();
+                NS_GEngine.delElements( "actor", [ jose ] );
+                document.getElementById( "action" ).disabled = true;
+                document.getElementById( "move" ).disabled = false;
             };
             NS_GEngine.addElement( "action", actionBattle ).active = true;
         }

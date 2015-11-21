@@ -313,7 +313,7 @@ function _Engine() {
             NS_UI.error( "Not enough actors for battle: " + this.actors.length );
             return false;
         }
-        for ( var i = 0; i < this.actors.length; i++ ) {
+        for ( var i in this.actors ) {
             this.battle.actors.push( this.actors[ i ] );
         }
         this.battle.active = true;
@@ -440,7 +440,6 @@ function _Engine() {
                         action.callback.call( action, action.cbArgs );
                     }
                 } else {
-                    NS_UI.error( 'action returns a non true result' );
                     if ( action.errorCb ) {
                         action.errorCb.call( action, action.errorCbArgs );
                     }

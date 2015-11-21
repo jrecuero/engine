@@ -27,7 +27,7 @@ function _UserItf() {
      * @return {undefined} Nothing
      */
     this.error = function( str ) {
-        console.log( str );
+        console.log( 'ERROR: ' + str );
     };
 
     /**
