@@ -97,6 +97,15 @@ function _UserItf() {
     };
 
     /**
+     * User interface error string.
+     * @param  {String} str String to send to error
+     * @return {undefined} Nothing
+     */
+    this.error = function( str ) {
+        console.log( str );
+    };
+
+    /**
      * User interface prompt string
      * @param  {String} str String to prompt
      * @return {string} String entered in the prompt dialog
@@ -465,7 +474,7 @@ function _Engine() {
     /**
      * Look for an ID in the given table.
      * @param  {int} id Engine ID to look for
-     * @param  {Array} table Element table where ID should be look for
+     * @param  {Array} table Element table where ID should be looked for
      * @return {Boolean} true if engine ID was found, false else
      */
     var lookForIn = function( id, table ) {
@@ -478,6 +487,52 @@ function _Engine() {
             return false;
         } else {
             return true;
+        }
+    };
+
+    /**
+     * Get an element from a given table based on the engine id.
+     * @param  {int} id Engine ID to look for
+     * @param  {Array} table Element table where ID should be looked for
+     * @return {GObject} Element found in the table, null else
+     */
+    var getFromTable = function( id, table ) {
+        if ( id && ( id !== 0 ) ) {
+            for ( var i in table ) {
+                if ( table[ i ].engId == id ) {
+                    return table[ i ];
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    };
+
+    /**
+     * Remote an element form a given table based on the engine id.
+     * @param  {int} id Engine ID to look for
+     * @param  {Array} table Element table where ID should be looked for
+     * @return {GObject} Element removed from the table, null, else
+     */
+    var removeFromTable = function( id, table ) {
+        var toDelete;
+        if ( id && ( id !== 0 ) ) {
+            for ( var i in table ) {
+                if ( table[ i ].engId == id ) {
+                    toDelete = i;
+                    break;
+                }
+            }
+            if ( toDelete ) {
+                var element = table[ i ];
+                table.splice( toDelete, 1 );
+                return element;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
         }
     };
 
@@ -706,6 +761,10 @@ function _Engine() {
      */
     this.initBattle = function() {
         this.battle.actors = [];
+        if ( this.actors.length <= 1) {
+            NS_UI.error( "Not enough actors for battle: " + this.actors.length );
+            return;
+        }
         for ( var i = 0; i < this.actors.length; i++ ) {
             this.battle.actors.push( this.actors[ i ] );
         }
@@ -762,7 +821,7 @@ function _Engine() {
      * @return {GObject} Element instance being added
      */
     this.addElement = function( subject, element ) {
-        elemTable = this.elementTable[ subject ];
+        var elemTable = this.elementTable[ subject ];
         if ( this.isElement( element.engId, elemTable.table ) ) {
             return null;
         } else {
@@ -778,13 +837,25 @@ function _Engine() {
     };
 
     /**
+     * Delete an element from teh given element table.
+     * @param  {String} subject Element table string identifier
+     * @param  {GObject} element Element instance to be found in the table
+     * @return {GObject} Element instance being removed, null else
+     */
+    this.delElement = function (subject, element ) {
+        var elemTable = this.elementTable[ subject ];
+        var result = removeFromTable( element.engId, elemTable.table );
+        return result;
+    };
+
+    /**
      * Add an array of already created elements to the proper element table.
      * @param {String} subject  Element table string identifier
      * @param {Array} elements Array with elements to be added
      * @return {Array} Array of element instances being added
      */
     this.addElements = function( subject, elements ) {
-        result = [];
+        var result = [];
         for ( var i = 0; i < elements.length; i++ ) {
             result.push( this.addElement( subject, elements[ i ] ) );
         }
