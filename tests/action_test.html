@@ -16,6 +16,7 @@
             assert.equal( action.name, "new action", "Action name correct" );
             assert.notOk( action.actionType, "Action type undefined" );
             assert.notOk( action.execute, "Action execute undefined" );
+            assert.deepEqual( action.execArgs, [], "Action execute args empty list" );
             assert.equal( action.active, false, "Action active false" );
             assert.equal( action.remove, true, "Action remove true" );
             assert.notOk( action.callback, "Action callback undefined" );
@@ -31,6 +32,7 @@
             var action = new NS_Action.Action( [ "full action",
                                                  "test",
                                                  actionExec,
+                                                 [ "first", "second" ],
                                                  true,
                                                  false,
                                                  actionCb,
@@ -40,6 +42,7 @@
             assert.equal( action.name, "full action", "Action name correct" );
             assert.equal( action.actionType, "test", "Action type correct" );
             assert.equal( action.execute, actionExec, "Action execute correct" );
+            assert.deepEqual( action.execArgs, [ "first", "second" ], "Action execute args correct" );
             assert.equal( action.active, true, "Action active true" );
             assert.equal( action.remove, false, "Action remove false" );
             assert.equal( action.callback, actionCb, "Action callback correct" );

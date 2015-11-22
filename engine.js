@@ -430,14 +430,14 @@ function _Engine() {
         for ( var i in this.actions ) {
             var action = this.actions[ i ];
             if ( action.active ) {
-                var result = action.execute.call( action );
+                var result = action.execute.call( action, action.execArgs );
                 if ( result ) {
                     if ( action.callback ) {
-                        action.callback.call( action, action.cbArgs );
+                        action.callback.call( action, result, action.cbArgs );
                     }
                 } else {
                     if ( action.errorCb ) {
-                        action.errorCb.call( action, action.errorCbArgs );
+                        action.errorCb.call( action, result, action.errorCbArgs );
                     }
                 }
                 action.active = false;

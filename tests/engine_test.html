@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QUnit Engine Tests: Action Module</title>
+        <link rel="stylesheet" type="text/css" href="qunit.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../ui.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../action.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../actor.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../evento.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../objeto.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../scene.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../engine.js" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+        QUnit.test( "Engine test", function( assert ) {
+            var execArgs;
+            var callbackArgs;
+            var execResult;
+            var actor = new NS_Actor.Actor( [ "test actor", NS_Common.createAttributes( 100, 50, 5 ), true, PLAYER ] );
+            var actionTest = new NS_Action.Action( [ "action test",
+                                                     "test",
+                                                     function( args ) {
+                                                        execArgs = args[ 0 ];
+                                                        return args[ 1 ];
+                                                     },
+                                                     [ "one", "two" ],
+                                                     false,
+                                                     true,
+                                                     function( result, args ) {
+                                                        execResult = result;
+                                                        callbackArgs = args[ 0 ];
+                                                     },
+                                                     [ "1" ] ] );
+            NS_GEngine.addElement( "action", actionTest ).active = true;
+            assert.equal( actionTest.engId, 1, "Game engine id" );
+            assert.notOk( execArgs, "Execute undefined - not executed" );
+            assert.notOk( callbackArgs, "Callback undefined - not executed" );
+            assert.notOk( execResult, "Execute result undefined - not executed" );
+            NS_GEngine.runActions();
+            assert.equal( execArgs, "one", "Execute correct - executed" );
+            assert.equal( callbackArgs, "1", "Callback correct - executed" );
+            assert.equal( execResult, "two", "Execute result correct - executed" );
+        });
+        </script>
+    </body>
+</html>

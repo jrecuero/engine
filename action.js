@@ -26,12 +26,13 @@ function _Action() {
         GObject.apply( this, args );
         this.actionType = args && args[ 1 ] ? args[ 1 ] : undefined;
         this.execute = args && args[ 2 ] ? args[ 2 ] : undefined;
-        this.active = args && args[ 3 ] !== undefined ? args[ 3 ] : false;
-        this.remove = args && args[ 4 ] !== undefined ? args[ 4 ] : true;
-        this.callback = args && args[ 5 ] ? args[ 5 ] : undefined;
-        this.cbArgs = args && args[ 6 ] ? args[ 6 ] : [];
-        this.errorCb = args && args[ 7 ] ? args[ 7 ] : undefined;
-        this.errorCbArgs = args && args[ 8 ] ? args[ 8 ] : [];
+        this.execArgs = args && args[ 3 ] ? args[ 3 ] : [];
+        this.active = args && args[ 4 ] !== undefined ? args[ 4 ] : false;
+        this.remove = args && args[ 5 ] !== undefined ? args[ 5 ] : true;
+        this.callback = args && args[ 6 ] ? args[ 6 ] : undefined;
+        this.cbArgs = args && args[ 7 ] ? args[ 7 ] : [];
+        this.errorCb = args && args[ 8 ] ? args[ 8 ] : undefined;
+        this.errorCbArgs = args && args[ 9 ] ? args[ 9 ] : [];
     };
     inheritKlass( GObject, this.Action );
 
@@ -49,6 +50,7 @@ function _Action() {
             NS_UI.log( "you moved " + this.steps );
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
@@ -70,6 +72,7 @@ function _Action() {
             NS_UI.log( "you used " + this.obj );
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );     // Action active
         args.push( true );      // Action remove after exec
         if ( arguments && arguments[ 1 ] ) {
@@ -102,6 +105,7 @@ function _Action() {
             NS_UI.log( "you took " + this.obj );
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
@@ -122,6 +126,7 @@ function _Action() {
             NS_UI.log( "you dropped " + this.obj );
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
@@ -142,6 +147,7 @@ function _Action() {
             NS_GEngine.battleAttack();
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
@@ -159,6 +165,7 @@ function _Action() {
         args.push( function() {     // Action execute
             return NS_GEngine.initBattle();
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
@@ -177,6 +184,7 @@ function _Action() {
             NS_UI.log( "you defend" );
             return true;
         } );
+        args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );

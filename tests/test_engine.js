@@ -65,14 +65,16 @@ function test_event_two_goblin_battle() {
             goblin2 = new NS_Actor.Actor( [ "goblin2", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
             var eventCreateActors = new NS_Action.Action( [ "create actors",
                                                             "actor",
-                                                            function() {
+                                                            function(args) {
                                                                 if ( battleCount === MAX_BATTLE_COUNT ) {
                                                                     NS_GEngine.addElements( "actor", [ jose ] );
                                                                 } else {
+                                                                    NS_UI.log('Create ' + args[ 0 ] + ", " + args[ 1 ] );
                                                                     NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
                                                                 }
                                                                 return true;
                                                             },
+                                                            [ "jose", "goblins" ],
                                                             false,
                                                             true ] );
             NS_GEngine.addElement( "action", eventCreateActors ).active = true;
