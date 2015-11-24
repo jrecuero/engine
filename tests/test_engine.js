@@ -60,9 +60,9 @@ function test_event_two_goblin_battle() {
             userSteps = 0;
             document.getElementById( "action" ).disabled = false;
             document.getElementById( "move" ).disabled = true;
-            jose = new NS_Actor.Actor( [ "jose", NS_Common.createAttributes( 100, 50, 5 ), true, PLAYER ] );
-            goblin1 = new NS_Actor.Actor( [ "goblin1", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
-            goblin2 = new NS_Actor.Actor( [ "goblin2", NS_Common.createAttributes( 80, 8, 1 ), true, ENEMY ] );
+            jose = new NS_Actor.Actor( [ "jose", new Attrs( 100, 50, 5 ), true, PLAYER ] );
+            goblin1 = new NS_Actor.Actor( [ "goblin1", new Attrs( 80, 8, 1 ), true, ENEMY ] );
+            goblin2 = new NS_Actor.Actor( [ "goblin2", new Attrs( 80, 8, 1 ), true, ENEMY ] );
             var eventCreateActors = new NS_Action.Action( [ "create actors",
                                                             "actor",
                                                             function(args) {

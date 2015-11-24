@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QUnit Engine Tests: Objeto Module</title>
+        <link rel="stylesheet" type="text/css" href="qunit.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../objeto.js" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+        QUnit.test( "Objeto test", function( assert ) {
+            var objeto = new NS_Objeto.Objeto( [ 'test objecto' ] );
+            assert.ok( objeto.name === 'test objecto', "Objeto name correct" );
+            assert.equal( objeto.objId, 2, "Objeto objId correct" );
+            assert.equal( objeto.active, false, "Objeto active is false" );
+            assert.equal( objeto.enable, false, "Objeto enable is false" );
+            assert.equal( objeto.isUsable(), false, "Objecto isUsable is false" );
+            assert.equal( objeto.getAttributes(), undefined, "Objeto attributes undefined" );
+
+            objeto.usable();
+            assert.equal( objeto.active, true, "Objeto active is true" );
+            assert.equal( objeto.enable, true, "Objeto enable is true" );
+            assert.equal( objeto.isUsable(), true, "Objecto isUsable is true" );
+
+            objeto.noUsable();
+            assert.equal( objeto.active, false, "Objeto active is false" );
+            assert.equal( objeto.enable, false, "Objeto enable is false" );
+            assert.equal( objeto.isUsable(), false, "Objecto isUsable is false" );
+
+            var attrs = new Attrs( 100, 50, 10 );
+            objeto.setAttributes( attrs );
+            assert.equal( objeto.getAttributes(), attrs, "Objeto attributes correct" );
+            assert.equal( objeto.getAttributes().life, 100, "Object attribute life correct");
+            assert.equal( objeto.getAttr( 'life' ), 100, "Object attribute life correct");
+            assert.equal( objeto.getAttributes().attack, 50, "Object attribute attack correct");
+            assert.equal( objeto.getAttr( 'attack' ), 50, "Object attribute attack correct");
+            assert.equal( objeto.getAttributes().defense, 10, "Object attribute defense correct");
+            assert.equal( objeto.getAttr( 'defense' ), 10, "Object attribute defense correct");
+
+            objeto.setAttr( "life", 200 );
+            assert.equal( objeto.getAttributes().life, 200, "Object attribute life updated");
+            assert.equal( objeto.getAttr( 'life' ), 200, "Object attribute life correct");
+
+            objeto.setAttr( "attack", 90 );
+            assert.equal( objeto.getAttributes().attack, 90, "Object attribute attack updated");
+            assert.equal( objeto.getAttr( 'attack' ), 90, "Object attribute attack correct");
+
+            objeto.setAttr( "defense", 20 );
+            assert.equal( objeto.getAttributes().defense, 20, "Object attribute defense updated");
+            assert.equal( objeto.getAttr( 'defense' ), 20, "Object attribute defense correct");
+        });
+        </script>
+    </body>
+</html>

@@ -28,6 +28,123 @@ function inheritKlass( parent, child ) {
 }
 
 /**
+ * Game attributes object.
+ * @return {Object} Actor attributes
+ */
+function Attrs() {
+    /**
+     * Objeto instance to be used by any method.
+     * @type {_Objeto}
+     */
+    var that = this;
+
+    /**
+     * Life attribute.
+     * @type {int}
+     */
+    this.life =  arguments[ 0 ];
+    var __life = this.life;
+    this.getLifeAndMod = function() {
+        return [ __life, this.life ];
+    };
+
+    /**
+     * Attack attribute.
+     * @type {int}
+     */
+    this.attack = arguments[ 1 ];
+    var __attack = this.attack;
+    this.getAttackAndMod = function() {
+        return [ __attack, this.attack ];
+    };
+
+    /**
+     * Defense attribute.
+     * @type {int}
+     */
+    this.defense = arguments[ 2 ];
+    var __defense = this.defense;
+    this.getDefenseAndMod = function() {
+        return [ __defense, this.defense ];
+    };
+
+    /**
+     * Attributes mofidiers list.
+     * @type {Array}
+     */
+    var __modifiers = [];
+
+    /**
+     * Reset all attributes to the base value.
+     * @return {undefined} Nothing
+     */
+    var __reset = function() {
+        that.life = __life;
+        that.attack = __attack;
+        that.defense = __defense;
+    };
+
+    /**
+     * Update all attributes with modifiers values.
+     * @return {undefined} Nothing
+     */
+    var __update = function() {
+        __reset();
+        for ( var i in __modifiers ) {
+            that.life += __modifiers[ i ].life;
+            that.attack += __modifiers[ i ].attack;
+            that.defense += __modifiers[ i ].defense;
+        }
+    };
+
+    /**
+     * Attribute damage result.
+     * @param  {Object} tgt Target instannce
+     * @return {int} Total damage
+     */
+    this.damage = function( tgt ) {
+        var damage = this.attack - tgt.attributes.defense;
+        tgt.attributes.life -= damage;
+        return damage;
+    };
+
+    /**
+     * Return is instance life is greater than zero.
+     * @return {Boolean} Instance life is greater than zero
+     */
+    this.isAlive = function() {
+        return ( this.life > 0 );
+    };
+
+    /**
+     * Add modifier to attributes.
+     * @param {Object} modifier Modifier instance
+     */
+    this.addModifier = function( modifier ) {
+        __modifiers.push( modifier );
+        __update();
+    };
+
+    /**
+     * Remote modifier from the argument.
+     * @param  {Object} modifier Modifier instance
+     * @return {undefined} Nothing
+     */
+    this.removeModifier = function( modifier ) {
+        NS_Common.removeFromArray( __modifiers, modifier );
+        __update();
+    };
+
+    /**
+     * Return all attribute modifiers.
+     * @return {Array} Array with all attribute modifiers
+     */
+    this.getModifiers = function() {
+        return __modifiers;
+    };
+}
+
+/**
  * Common NameSpace functions.
  * @return {undefined} Nothing
  */
@@ -46,25 +163,9 @@ function _Common() {
         __engine = engine;
     };
 
-    /**
-     * Create actor attributes to be used.
-     * @return {Object} Actor attributes
-     */
-    this.createAttributes = function() {
-        var _ = {
-            life: arguments[ 0 ],
-            attack: arguments[ 1 ],
-            defense: arguments[ 2 ],
-            damage: function( tgt ) {
-                var damage = this.attack - tgt.attributes.defense;
-                tgt.attributes.life -= damage;
-                return damage;
-            },
-            isAlive: function() {
-                return ( this.life > 0 );
-            }
-        };
-        return _;
+    this.removeFromArray = function( array, value ) {
+        var index = array.indexOf( value );
+        array.splice( index, 1 );
     };
 
     /**

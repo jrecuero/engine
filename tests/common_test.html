@@ -18,13 +18,13 @@
 
         QUnit.test( "Attributes test", function( assert ) {
             var originator = {};
-            originator.attributes = new NS_Common.createAttributes( 100, 90, 80 );
+            originator.attributes = new Attrs( 100, 90, 80 );
             assert.ok( originator.attributes.life === 100, "originator life correct" );
             assert.ok( originator.attributes.attack === 90, "originator attack correct" );
             assert.ok( originator.attributes.defense === 80, "originator defense correct" );
 
             var target = {};
-            target.attributes = new NS_Common.createAttributes( 100, 40, 30 );
+            target.attributes = new Attrs( 100, 40, 30 );
             assert.ok( target.attributes.life === 100, "target life correct" );
             assert.ok( target.attributes.attack === 40, "target attack correct" );
             assert.ok( target.attributes.defense === 30, "target defense correct" );
@@ -35,6 +35,36 @@
             assert.ok( originator.attributes.damage( target) === 60, "damage correct" );
             assert.ok( target.attributes.life === -20, "target life correct after damage" );
             assert.ok( !target.attributes.isAlive(), "target is dead" );
+
+            assert.deepEqual( originator.attributes.getLifeAndMod(), [ 100, 100 ], "originator life and mod correct" );
+            assert.deepEqual( originator.attributes.getAttackAndMod(), [ 90, 90 ], "originator attack and mod correct" );
+            assert.deepEqual( originator.attributes.getDefenseAndMod(), [ 80, 80 ], "originator defense and mod correct" );
+
+            var mod1 = new Attrs( 10, 5, 1 );
+            originator.attributes.addModifier( mod1 );
+            assert.equal( originator.attributes.life, 110, "originator life correct" );
+            assert.equal( originator.attributes.attack, 95, "originator attack correct" );
+            assert.equal( originator.attributes.defense, 81, "originator defense correct" );
+            assert.deepEqual( originator.attributes.getModifiers(), [ mod1 ], 'originator modifiers correct' );
+
+            var mod2 = new Attrs( 20, 6, 2 );
+            originator.attributes.addModifier( mod2 );
+            assert.equal( originator.attributes.life, 130, "originator life correct" );
+            assert.equal( originator.attributes.attack, 101, "originator attack correct" );
+            assert.equal( originator.attributes.defense, 83, "originator defense correct" );
+            assert.deepEqual( originator.attributes.getModifiers(), [ mod1, mod2 ], 'originator modifiers correct' );
+
+            originator.attributes.removeModifier( mod1 );
+            assert.equal( originator.attributes.life, 120, "originator life correct" );
+            assert.equal( originator.attributes.attack, 96, "originator attack correct" );
+            assert.equal( originator.attributes.defense, 82, "originator defense correct" );
+            assert.deepEqual( originator.attributes.getModifiers(), [ mod2 ], 'originator modifiers correct' );
+
+            originator.attributes.removeModifier( mod2 );
+            assert.equal( originator.attributes.life, 100, "originator life correct" );
+            assert.equal( originator.attributes.attack, 90, "originator attack correct" );
+            assert.equal( originator.attributes.defense, 80, "originator defense correct" );
+            assert.deepEqual( originator.attributes.getModifiers(), [], 'originator modifiers correct' );
         });
 
         QUnit.test( "Other functions test", function( assert ) {

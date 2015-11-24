@@ -12,7 +12,7 @@
         <script type="text/javascript" src="../actor.js" charset="utf-8"></script>
         <script type="text/javascript" charset="utf-8">
         QUnit.test( "Actor test", function( assert ) {
-            var attrs = NS_Common.createAttributes( 100, 90, 10 );
+            var attrs = new Attrs( 100, 90, 10 );
             var actor = new NS_Actor.Actor( [ 'me', attrs, true, PLAYER ] );
             assert.ok( actor.name === 'me', "Actor name correct" );
             assert.equal( actor.objId, 2, "Actor objId correct" );
@@ -23,7 +23,7 @@
             assert.equal( actor.playableSide, PLAYER, "Actor playable side correct" );
 
             var enemy = new NS_Actor.Actor( [ 'me',
-                                              NS_Common.createAttributes( 100, 50, 10 ),
+                                              new Attrs( 100, 50, 10 ),
                                               true,
                                               PLAYER ] );
             var damage = actor.damage( enemy );
