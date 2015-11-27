@@ -9,13 +9,14 @@
         <div id="qunit-fixture"></div>
         <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
         <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../objeto.js" charset="utf-8"></script>
         <script type="text/javascript" src="../actor.js" charset="utf-8"></script>
         <script type="text/javascript" charset="utf-8">
         QUnit.test( "Actor test", function( assert ) {
             var attrs = new Attrs( 100, 90, 10 );
             var actor = new NS_Actor.Actor( [ 'me', attrs, true, PLAYER ] );
             assert.ok( actor.name === 'me', "Actor name correct" );
-            assert.equal( actor.objId, 2, "Actor objId correct" );
+            assert.equal( actor.objId, 3, "Actor objId correct" );
             assert.equal( actor.attributes.life, 100, "Actor life correct" );
             assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
             assert.equal( actor.attributes.defense, 10, "Actor defense correct" );
@@ -34,6 +35,31 @@
             damage = actor.damage( enemy );
             assert.equal( enemy.attributes.life, -60, "Enemy life after second damage correct" );
             assert.notOk( enemy.isAlive(), "Enemy is dead after second damage" );
+
+            var objeto = new NS_Objeto.Objeto( ['test obj' ] );
+            assert.equal( actor.addObjeto( objeto ), true, 'Actor added objeto properly' );
+            assert.deepEqual( actor.getObjetos(), [ objeto ], "Actor get objetos properly" );
+            assert.equal( actor.attributes.life, 100, "Actor life correct" );
+            assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
+            assert.equal( actor.attributes.defense, 10, "Actor defense correct" );
+            assert.equal( actor.removeObjeto( objeto ), true, 'Actor removed objeto properly' );
+
+            objeto.setAttributes( new Attrs( 1, 2, 3 ) );
+            assert.equal( actor.addObjeto( objeto ), true, 'Actor added objeto with attrs properly not usable' );
+            assert.deepEqual( actor.getObjetos(), [ objeto ], "Actor get objetos properly" );
+            assert.equal( actor.attributes.life, 100, "Actor life correct" );
+            assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
+            assert.equal( actor.attributes.defense, 10, "Actor defense correct" );
+            assert.equal( actor.removeObjeto( objeto ), true, 'Actor removed objeto properly' );
+
+            objeto.setAttributes( new Attrs( 1, 2, 3 ) );
+            assert.equal( objeto.usable(), true, "Set objeto as usable" );
+            assert.equal( actor.addObjeto( objeto ), true, 'Actor added objeto with attrs properly usable' );
+            assert.deepEqual( actor.getObjetos(), [ objeto ], "Actor get objetos properly" );
+            assert.equal( actor.attributes.life, 101, "Actor life correct" );
+            assert.equal( actor.attributes.attack, 92, "Actor attack correct" );
+            assert.equal( actor.attributes.defense, 13, "Actor defense correct" );
+            assert.equal( actor.removeObjeto( objeto ), true, 'Actor removed objeto properly' );
         });
         </script>
     </body>

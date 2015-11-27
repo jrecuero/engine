@@ -1,6 +1,6 @@
 /**
  * Objecto NameSpace function.
- * @return {undefined} Nothing
+ * @return {Boolean} Always true
  */
 function _Objeto() {
     /**
@@ -18,16 +18,18 @@ function _Objeto() {
     /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
+     * @return {Boolean} Always true
      */
     this.setEngine = function( engine ) {
         __engine = engine;
+        return true;
     };
 
     /**
      * Objecto class for any object (item, usable, equipment, ...) used in the
      * game.
      * @param {Array} args Arguments required for the constructor
-     * @return {undefined} Nothing
+     * @return {Boolean} true if object was created properly, false else
      */
     this.Objeto = function( args ) {
         GObject.apply( this, args );
@@ -46,20 +48,22 @@ function _Objeto() {
 
         /**
          * Set objeto as usable.
-         * @return {undefined} Nothing
+         * @return {Boolean} Always true
          */
         this.usable = function() {
             this.active = true;
             this.enable = true;
+            return true;
         };
 
         /**
          * Set objeto as not usable.
-         * @return {undefined} Nothing
+         * @return {Boolean} Always true
          */
         this.noUsable = function() {
             this.active = false;
             this.enable = false;
+            return true;
         };
 
         /**
@@ -78,9 +82,11 @@ function _Objeto() {
         /**
          * Set objeto attributes
          * @param {Object} attrs Objeto attribute instance
+         * @return {Object} Attributes instance
          */
         this.setAttributes = function( attrs ) {
             __attributes = attrs;
+            return attrs;
         };
 
         /**
@@ -95,9 +101,11 @@ function _Objeto() {
          * Set value for one give attribute.
          * @param {String} attr  Attribute name
          * @param {Object} value New attribute value
+         * @return {Boolean} true if value was set properly, false else
          */
         this.setAttr = function( attr, value ) {
             __attributes[attr] = value;
+            return true;
         };
 
         /**
@@ -108,9 +116,12 @@ function _Objeto() {
         this.getAttr = function ( attr ) {
             return __attributes[attr];
         };
+
+        return true;
     };
     inheritKlass( GObject, this.Objeto );
 
+    return true;
 }
 
 var NS_Objeto = new _Objeto();

@@ -1,6 +1,6 @@
 /**
  * Action NameSpace function
- * @return {undefined} Nothing
+ * @return {Boolean} Always true
  */
 function _Action() {
     /**
@@ -12,15 +12,17 @@ function _Action() {
     /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
+     * @return {Boolean} Always true
      */
     this.setEngine = function( engine ) {
         __engine = engine;
+        return true;
     };
 
     /**
      * Action class for any action used in the game.
      * @param {Array} args Arguments required for the constructor
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.Action = function( args ) {
         GObject.apply( this, args );
@@ -33,13 +35,14 @@ function _Action() {
         this.cbArgs = args && args[ 7 ] ? args[ 7 ] : [];
         this.errorCb = args && args[ 8 ] ? args[ 8 ] : undefined;
         this.errorCbArgs = args && args[ 9 ] ? args[ 9 ] : [];
+        return true;
     };
     inheritKlass( GObject, this.Action );
 
     /**
      * Move Action class for movement action.
      * @param {Integer} steps Number of steps to move
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.move = function( steps ) {
         this.steps = steps ? steps : 1;
@@ -54,13 +57,14 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.move );
 
     /**
      * Use Action class for action.
      * @param {String} Object to use
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.use = function( obj ) {
         this.obj = obj ? obj : "";
@@ -88,13 +92,14 @@ function _Action() {
         // Action callback argumnets
         args.push( Array.prototype.slice.call( arguments ).slice( 2 ) );
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.use );
 
     /**
      * Take Action class for action.
      * @param {String} Object to take
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.take = function( obj ) {
         this.obj = obj ? obj : "";
@@ -109,13 +114,14 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.take );
 
     /**
      * Drop Action class for action.
      * @param {String} Object to drop
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.drop = function( obj ) {
         this.obj = obj ? obj : "";
@@ -130,6 +136,7 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.drop );
 
@@ -137,7 +144,7 @@ function _Action() {
      * Attack Action class for attack action.
      * TODO: This method has to give up a lot of functionality to be moved to
      *  the engine.
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.attack = function() {
         var args = [];
@@ -151,12 +158,13 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.attack );
 
     /**
      * Start Battle Action class for battle action.
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.battle = function() {
         var args = [];
@@ -169,12 +177,13 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.battle );
 
     /**
      * Defense Action class for defense action.
-     * @return {undefined} Nothing
+     * @return {Boolean} Always true
      */
     this.defense = function() {
         var args = [];
@@ -188,8 +197,11 @@ function _Action() {
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
         NS_Action.Action.call( this, args );
+        return true;
     };
     inheritKlass( this.Action, this.defense );
+
+    return true;
 }
 
 var NS_Action = new _Action();
