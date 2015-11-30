@@ -4,6 +4,12 @@
  */
 function _Evento() {
     /**
+     * Keep a copy for the object instance.
+     * @type {_Evento}
+     */
+    that = this;
+
+    /**
      * Game engine instance
      * @type {_Engine}
      */

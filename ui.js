@@ -4,6 +4,12 @@
  */
 function _UserItf() {
     /**
+     * Keep a copy for the object instance.
+     * @type {_UserIf}
+     */
+    that = this;
+
+    /**
      * User interface log string.
      * @param  {String} str String to send to log
      * @return {undefined} Nothing

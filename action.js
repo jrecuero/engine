@@ -4,6 +4,12 @@
  */
 function _Action() {
     /**
+     * Keep a copy for the object instance.
+     * @type {_Action}
+     */
+    that = this;
+
+    /**
      * Game engine instance
      * @type {_Engine}
      */
@@ -56,7 +62,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.move );
@@ -91,7 +97,7 @@ function _Action() {
 
         // Action callback argumnets
         args.push( Array.prototype.slice.call( arguments ).slice( 2 ) );
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.use );
@@ -113,7 +119,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.take );
@@ -135,7 +141,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.drop );
@@ -157,7 +163,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.attack );
@@ -176,7 +182,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.battle );
@@ -196,7 +202,7 @@ function _Action() {
         args.push( undefined );     // Action execute argument
         args.push( false );         // Action active
         args.push( true );          // Action remove after exec
-        NS_Action.Action.call( this, args );
+        that.Action.call( this, args );
         return true;
     };
     inheritKlass( this.Action, this.defense );

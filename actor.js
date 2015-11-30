@@ -4,6 +4,12 @@
  */
 function _Actor() {
     /**
+     * Keep a copy for the object instance.
+     * @type {_Actor}
+     */
+    that = this;
+
+    /**
      * Game engine instance
      * @type {_Engine}
      */
@@ -30,6 +36,10 @@ function _Actor() {
         this.playable = args[ 2 ] ? args[ 2 ] : true;
         this.playableSide = args[ 3 ] ? args[ 3 ] : PLAYER;
 
+        /**
+         * Array of objetos the actor can own.
+         * @type {Array}
+         */
         var __objetos = [];
 
         /**
@@ -63,7 +73,7 @@ function _Actor() {
         };
 
         /**
-         * Remove objeto from the actor
+         * Remove objeto from the actor.
          * @param  {Objecto} obj Objecto instance to remove
          * @return {Boolean} true if removed properly, false else
          */
@@ -76,7 +86,7 @@ function _Actor() {
         };
 
         /**
-         * Get all actor objeto instances
+         * Get all actor objeto instances.
          * @return {Array} Array with all objetos instances
          */
         this.getObjetos = function() {

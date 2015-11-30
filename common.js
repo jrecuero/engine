@@ -190,17 +190,57 @@ function _Common() {
     /**
      * Delete table based on the second given table.
      * @param  {Array} table    Original table to delete entries
-     * @param  {Array} todelete Table with entries to delete
+     * @param  {Array} to_delete Table with entries to delete
      * @return {Boolean} true if value was deleted, false else
      */
-    this.deleteWith = function( table, todelete ) {
-        if ( todelete.length > 0 ) {
-            for ( var i = ( todelete.length - 1 ); i >= 0; i-- ) {
-                table.splice( todelete[ i ], 1 );
+    this.deleteWith = function( table, to_delete ) {
+        if ( to_delete.length > 0 ) {
+            for ( var i = ( to_delete.length - 1 ); i >= 0; i-- ) {
+                table.splice( to_delete[ i ], 1 );
             }
         }
         return true;
     };
+
+    /**
+     * Get an element from a given table based on the object id.
+     * @param  {int} id Object ID to look for
+     * @param  {Array} table Element table where ID should be looked for
+     * @return {GObject} Element found in the table, null else
+     */
+    var getForIdFromTable = function( id, table ) {
+        if ( id && ( id !== 0 ) ) {
+            for ( var i in table ) {
+                if ( table[ i ].objId == id ) {
+                    return table[ i ];
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    };
+
+    /**
+     * Get an element from a given table based on the name.
+     * @param  {String} Name to look for
+     * @param  {Array} table Element table where ID should be looked for
+     * @return {GObject} Element found in the table, null else
+     */
+    var getForNameFromTable = function( name, table ) {
+        if ( name ) {
+            for ( var i in table ) {
+                if ( table[ i ].name == name ) {
+                    return table[ i ];
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    };
+
+    return true;
 }
 
 var NS_Common = new _Common();

@@ -121,6 +121,17 @@ function _Objeto() {
     };
     inheritKlass( GObject, this.Objeto );
 
+    /**
+     * Key objeto.
+     * @param {Array} args Key objeto arguments
+     * @return {Boolean} Always true
+     */
+    this.Key = function( args ) {
+        that.Objeto.call( this, args );
+        return true;
+    };
+    inheritKlass( this.Objeto, this.Key );
+
     return true;
 }
 

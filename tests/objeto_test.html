@@ -52,6 +52,10 @@
             assert.equal( objeto.getAttributes().defense, 20, "Object attribute defense updated");
             assert.equal( objeto.getAttr( 'defense' ), 20, "Object attribute defense correct");
         });
+        QUnit.test( "Objeto Classes test", function( assert ) {
+            var key = new NS_Objeto.Key( [ 'this is a key' ] );
+            assert.equal( key.name, "this is a key", "objeto key name" );
+        });
         </script>
     </body>
 </html>

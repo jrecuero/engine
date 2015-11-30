@@ -7,6 +7,12 @@
  */
 function _Engine() {
     /**
+     * Keep a copy for the object instance.
+     * @type {_Engine}
+     */
+    that = this;
+
+    /**
      * Generate the next available engine ID.
      * @return {int} Next available engine ID
      */
