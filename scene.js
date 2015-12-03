@@ -7,7 +7,7 @@ function _Scene() {
      * Keep a copy for the object instance.
      * @type {_Scene}
      */
-    that = this;
+    var that = this;
 
     /**
      * Game engine instance
@@ -24,12 +24,54 @@ function _Scene() {
     };
 
     /**
+     * Cell to be used inside every Layout.
+     * @param {Array} args Arguments required for the constructor
+     * @return {Boolean} Always true
+     */
+    this.Cell = function( args ) {
+        GObject.apply( this, args );
+
+        var __position = args && args[ 1 ] ? args[ 1 ] : undefined;
+        var __image = args && args[ 2 ] ? args[ 2 ] : undefined;
+
+        return true;
+    };
+    inheritKlass( GObject, this.Cell );
+
+    /**
      * Layout to be used in scenes.
      * @param {Array} args Arguments required for the constructor
      * @return {Boolean} Always true
      */
     this.Layout = function( args ) {
         GObject.apply( this, args );
+
+        var __xdim = args[ 1 ];
+        var __ydim = args[ 2 ];
+        var __cellMap = new Array( __xdim );
+        var i , j;
+
+        for ( i in __cellMap ) {
+            __cellMap[ i ] = new Array( __ydim );
+        }
+
+        for ( i in __cellMap ) {
+            for ( j in __cellMap[ i ] ) {
+                __cellMap[ i ][ j ] = new that.Cell( [ 'cell', [ i, j ], null ] );
+            }
+        }
+
+        this.getDim = function() {
+            return [ __xdim, __ydim ];
+        };
+
+        this.isInside = function( position ) {
+            var x = position[ 0 ];
+            var y = position[ 1 ];
+            return ( ( x >= 0 ) && ( x < __xdim ) &&
+                     ( y >= 0 ) && ( y < __ydim ) &&
+                     ( __cellMap[ x ][ y ] ) );
+        };
 
         return true;
     };
@@ -41,7 +83,7 @@ function _Scene() {
      * @return {Boolean} Always true
      */
     this.ObjetoScene = function( args ) {
-        NS_Objeto.apply( this, args );
+        GObjeto.apply( this, args );
 
         /**
          * Objeto position in the scene layout.
@@ -54,6 +96,14 @@ function _Scene() {
          * @type {Array}
          */
         var __eventos = [];
+
+        this.setPosition = function( position ) {
+            __position = position;
+        };
+
+        this.getPosition = function() {
+            return __position;
+        };
 
         this.addEvento = function( evento ) {
             __eventos.push( evento );
@@ -71,7 +121,7 @@ function _Scene() {
 
         return true;
     };
-    inheritKlass( NS_Objeto.Object, this.ObjetoScene);
+    inheritKlass( GObject, this.ObjetoScene );
 
     /**
      * Scene class for any scene used in the game
@@ -86,6 +136,12 @@ function _Scene() {
          * @type {Array}
          */
         var __objetos = [];
+
+        var __DEFAULT_X_DIM = 3;
+        var __DEFAULT_Y_DIM = 3;
+        var __xdim = args && args[ 1 ] ? args[ 1 ] : __DEFAULT_X_DIM;
+        var __ydim = args && args[ 2 ] ? args[ 2 ] : __DEFAULT_Y_DIM;
+        var __layout = new that.Layout( [ 'scene-layout', __xdim, __ydim ] );
 
         /**
          * Add new objeto to the scene.
@@ -107,12 +163,33 @@ function _Scene() {
             return true;
         };
 
+        this.placeObjetoInScene = function( obj, position ) {
+            if ( __layout.isInside( position ) ) {
+                obj.setPosition( position );
+                this.addObjeto( obj );
+                return True;
+            }
+            return False;
+        };
+
+        this.replaceObjetoInScene = function( obj, position ) {
+            if ( __layout.isInside( position ) ) {
+                obj.setPosition( position );
+                return True;
+            }
+            return False;
+        };
+
         /**
          * Get all scene objeto instances.
          * @return {Array} Array with all objetos instances
          */
         this.getObjetos = function() {
             return __objetos;
+        };
+
+        this.getDim = function() {
+            return __layout.getDim();
         };
 
         return true;

@@ -7,7 +7,7 @@ function _Action() {
      * Keep a copy for the object instance.
      * @type {_Action}
      */
-    that = this;
+    var that = this;
 
     /**
      * Game engine instance

@@ -16,7 +16,6 @@
             var attrs = new Attrs( 100, 90, 10 );
             var actor = new NS_Actor.Actor( [ 'me', attrs, true, PLAYER ] );
             assert.ok( actor.name === 'me', "Actor name correct" );
-            assert.equal( actor.objId, 3, "Actor objId correct" );
             assert.equal( actor.attributes.life, 100, "Actor life correct" );
             assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
             assert.equal( actor.attributes.defense, 10, "Actor defense correct" );

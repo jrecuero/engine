@@ -15,7 +15,6 @@
         QUnit.test( "Scene test", function( assert ) {
             var scene = new NS_Scene.Scene( [ 'escena' ] );
             assert.equal( scene.name, 'escena', "Scene name correct" );
-            assert.equal( scene.objId, 3, "Scene objId correct" );
 
             var objeto = new NS_Objeto.Objeto( ['test obj' ] );
             assert.equal( scene.addObjeto( objeto ), true, 'Scene added objeto properly' );

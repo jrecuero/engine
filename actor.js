@@ -7,7 +7,7 @@ function _Actor() {
      * Keep a copy for the object instance.
      * @type {_Actor}
      */
-    that = this;
+    var that = this;
 
     /**
      * Game engine instance
@@ -41,6 +41,8 @@ function _Actor() {
          * @type {Array}
          */
         var __objetos = [];
+
+        var __eventos = [];
 
         /**
          * Actor damage target.

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QUnit Engine Tests: Evento Module</title>
+        <link rel="stylesheet" type="text/css" href="qunit.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script type="text/javascript" src="qunit.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../common.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../action.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../evento.js" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+        QUnit.test( "Evento test basic", function( assert ) {
+            var evento = new NS_Evento.Evento( [ "new evento" ] );
+            assert.equal( evento.name, "new evento", "Evento name correct" );
+        });
+        QUnit.test( "Evento test pages", function( assert ) {
+            var evento = new NS_Evento.Evento( [ "new evento" ] );
+            assert.equal( evento.addPage(), 0, "Evento creates page correct" );
+            assert.equal( evento.addPage(), 1, "Evento creates page correct" );
+            var pages = evento.getPages();
+            assert.ok( pages, "Retrieve pages from evento correct" );
+            assert.equal( pages.length, 2, "Retrieve pages length correct" );
+            assert.ok( evento.getPage( 0 ), pages[ 0 ], "Retrieve page form evento correct" );
+            assert.ok( evento.getPage( 1 ), pages[ 1 ], "Retrieve page form evento correct" );
+            assert.deepEqual( pages[ 0 ].actions, [], "Page actions correct" );
+            assert.deepEqual( pages[ 0 ].conditions, [], "Page conditions correct" );
+            assert.equal( pages[ 0 ].enable, true, "Page enable correct" );
+            assert.deepEqual( pages[ 1 ].actions, [], "Page actions correct" );
+            assert.deepEqual( pages[ 1 ].conditions, [], "Page conditions correct" );
+            assert.equal( pages[ 1 ].enable, true, "Page enable correct" );
+
+            assert.ok( evento.disablePage( 0 ), "Evento disable page correct" );
+            assert.equal( pages[ 0 ].enable, false, "Page enable correct" );
+            assert.ok( evento.enablePage( 0 ), "Evento enable page correct" );
+            assert.equal( pages[ 0 ].enable, true, "Page enable correct" );
+
+            assert.notOk( evento.enablePage( 2 ), "Page not available for enable" );
+            assert.notOk( evento.disablePage( 2 ), "Page not available for disable" );
+        });
+        QUnit.test( "Evento test page conditions", function( assert ) {
+            var evento = new NS_Evento.Evento( [ "new evento" ] );
+            assert.equal( evento.addPage(), 0, "Evento creates page correct" );
+
+            assert.ok( evento.addCondition( "one" ), "Add condition to page 0 (default)" );
+            assert.ok( evento.addCondition( "two", 0 ), "Add condition to page 0 (explicit)" );
+            assert.notOk( evento.addCondition( "three", 1 ), "Add condition to not valid page" );
+        });
+        </script>
+    </body>
+</html>
