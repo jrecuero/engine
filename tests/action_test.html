@@ -11,44 +11,37 @@
         <script type="text/javascript" src="../common.js" charset="utf-8"></script>
         <script type="text/javascript" src="../action.js" charset="utf-8"></script>
         <script type="text/javascript" charset="utf-8">
-        QUnit.test( "Action test / Only Name", function( assert ) {
-            var action = new NS_Action.Action( [ "new action" ] );
-            assert.equal( action.name, "new action", "Action name correct" );
-            assert.notOk( action.actionType, "Action type undefined" );
-            assert.notOk( action.execute, "Action execute undefined" );
-            assert.deepEqual( action.execArgs, [], "Action execute args empty list" );
-            assert.equal( action.active, false, "Action active false" );
-            assert.equal( action.remove, true, "Action remove true" );
-            assert.notOk( action.callback, "Action callback undefined" );
-            assert.deepEqual( action.cbArgs, [], "Action callback args empty list" );
-            assert.notOk( action.errorCb, "Action error callback undefined" );
-            assert.deepEqual( action.errorCbArgs, [], "Action error callback args empty list" );
+        QUnit.test( "Action test", function( assert ) {
+            var action = NS_Action.createAction();
+            assert.notOk( action.name, "Action name undefined" );
+            assert.notOk( action.type, "Action type undefined" );
+            assert.notOk( action.execCb.cb, "Action execution callback undefined" );
+            assert.deepEqual( action.execCb.args, [], "Action execution callback arguments empty" );
+            assert.notOk( action.passCb.cb, "Action execution pass callback undefined" );
+            assert.deepEqual( action.passCb.args, [], "Action execution pass callback arguments empty" );
+            assert.notOk( action.errorCb.cb, "Action execution error callback undefined" );
+            assert.deepEqual( action.errorCb.args, [], "Action execution error callback arguments empty" );
+            assert.notOk( action.active, "Action active enable is false" );
+            assert.equal( action.periodic, 0, "Action active periodic is zero" );
+            assert.ok( action.remove, "Action flag remove is true" );
         });
-
-        QUnit.test( "Action test / Full arguments", function( assert ) {
-            var actionExec = function() {};
-            var actionCb = function() {};
-            var actionErrorCb = function() {};
-            var action = new NS_Action.Action( [ "full action",
-                                                 "test",
-                                                 actionExec,
-                                                 [ "first", "second" ],
-                                                 true,
-                                                 false,
-                                                 actionCb,
-                                                 [ "1", "2" ],
-                                                 actionErrorCb,
-                                                 [ "a", "b" ] ]);
-            assert.equal( action.name, "full action", "Action name correct" );
-            assert.equal( action.actionType, "test", "Action type correct" );
-            assert.equal( action.execute, actionExec, "Action execute correct" );
-            assert.deepEqual( action.execArgs, [ "first", "second" ], "Action execute args correct" );
-            assert.equal( action.active, true, "Action active true" );
-            assert.equal( action.remove, false, "Action remove false" );
-            assert.equal( action.callback, actionCb, "Action callback correct" );
-            assert.deepEqual( action.cbArgs, [ "1", "2" ], "Action callback args correct" );
-            assert.equal( action.errorCb, actionErrorCb, "Action error callback correct" );
-            assert.deepEqual( action.errorCbArgs, [ "a", "b" ], "Action error callback args correct" );
+        QUnit.test( "Action 'move' test", function( assert ) {
+            var steps = 5;
+            var move = NS_Action.move( steps );
+            assert.equal( move.name, "move", "'move' action name is 'move'");
+            assert.equal( move.type, "move", "'move' action type is 'move'" );
+            assert.ok( move.execCb.cb, "'move' action execution callback defined" );
+            assert.deepEqual( move.execCb.args, [ steps ], "'move' action execution callback args are correct" );
+        });
+        QUnit.test( "Action 'use' test", function( assert ) {
+            var key = 'key';
+            var use = NS_Action.use( key );
+            assert.equal( use.name, "use", "'use' action name is 'use'");
+            assert.equal( use.type, "use", "'use' action type is 'use'" );
+            assert.ok( use.execCb.cb, "'use' action execution callback defined" );
+            assert.deepEqual( use.execCb.args, [ key ], "'use' action execution callback args are correct" );
+            assert.ok( use.passCb.cb, "'use' action execution pass callback defined" );
+            assert.deepEqual( use.passCb.args, [ key ], "'use' action execution pass callback args are correct" );
         });
         </script>
     </body>

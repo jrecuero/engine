@@ -427,6 +427,12 @@ function _Engine() {
         return result;
     };
 
+    var __reloadAction = function( action ) {
+        return function() {
+            that.addElement( "action", action ).active = true;
+        };
+    };
+
     /**
      * Run actions when engine runs.
      * @return {undefined} Nothing
@@ -436,19 +442,25 @@ function _Engine() {
         for ( var i in this.actions ) {
             var action = this.actions[ i ];
             if ( action.active ) {
-                var result = action.execute.call( action, action.execArgs );
+                var result = action.runExec();
+                // var result = action.execute.call( action, action.execArgs );
                 if ( result ) {
-                    if ( action.callback ) {
-                        action.callback.call( action, result, action.cbArgs );
-                    }
+                    action.runPass( result );
+                    // if ( action.callback ) {
+                    //     action.callback.call( action, result, action.cbArgs );
+                    // }
                 } else {
-                    if ( action.errorCb ) {
-                        action.errorCb.call( action, result, action.errorCbArgs );
-                    }
+                    action.runError( result );
+                    // if ( action.errorCb ) {
+                    //     action.errorCb.call( action, result, action.errorCbArgs );
+                    // }
                 }
                 action.active = false;
                 if ( action.remove ) {
                     toDelete.push( i );
+                }
+                if ( action.periodic !== 0 ) {
+                    setTimeout( __reloadAction( action ), action.periodic );
                 }
             }
         }
@@ -559,6 +571,10 @@ function _Engine() {
         this.state.reset();
         return true;
     };
+
+    this.start = function() {
+        setInterval( function() { that.runTick(); }, 100 );
+    };
 }
 
 // ----------------------------------------------------------------------------
@@ -577,4 +593,4 @@ NS_Objeto.setEngine(NS_GEngine);
 NS_Scene.setEngine(NS_GEngine);
 
 // Set the interval the engine will run again.
-setInterval( function() { NS_GEngine.runTick(); }, 100 );
+// setInterval( function() { NS_GEngine.runTick(); }, 100 );

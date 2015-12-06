@@ -22,20 +22,19 @@
             var callbackArgs;
             var execResult;
             var actor = new NS_Actor.Actor( [ "test actor", Attrs( 100, 50, 5 ), true, PLAYER ] );
-            var actionTest = new NS_Action.Action( [ "action test",
-                                                     "test",
-                                                     function( args ) {
-                                                        execArgs = args[ 0 ];
-                                                        return args[ 1 ];
-                                                     },
-                                                     [ "one", "two" ],
-                                                     false,
-                                                     true,
-                                                     function( result, args ) {
-                                                        execResult = result;
-                                                        callbackArgs = args[ 0 ];
-                                                     },
-                                                     [ "1" ] ] );
+            var actionTest = NS_Action.createAction()
+            actionTest.name = "action test";
+            actionTest.type = "test";
+            actionTest.execCb.cb = function( args ) {
+                execArgs = args[ 0 ];
+                return args[ 1 ];
+            };
+            actionTest.execCb.args = [ "one", "two" ];
+            actionTest.passCb.cb = function( result, args ) {
+                execResult = result;
+                callbackArgs = args[ 0 ];
+            };
+            actionTest.passCb.args = [ "1" ];
             NS_GEngine.addElement( "action", actionTest ).active = true;
             assert.equal( actionTest.engId, 1, "Game engine id" );
             assert.notOk( execArgs, "Execute undefined - not executed" );
@@ -45,6 +44,23 @@
             assert.equal( execArgs, "one", "Execute correct - executed" );
             assert.equal( callbackArgs, "1", "Callback correct - executed" );
             assert.equal( execResult, "two", "Execute result correct - executed" );
+        });
+
+        QUnit.test( "Engine : Action periodic test", function( assert ) {
+            var action = NS_Action.createAction();
+            var timer = 0;
+            action.execCb.cb = function() {
+                timer++;
+                return true;
+            };
+            action.periodic = 2;
+            NS_GEngine.addElement( "action", action ).active = true;
+            assert.ok( action.active, "action has been activated" );
+            NS_GEngine.runActions();
+            setTimeout( function() {
+                NS_GEngine.runActions();
+                assert.equal( timer, 2, "periodic action called two times");
+            }, 3);
         });
         </script>
     </body>
