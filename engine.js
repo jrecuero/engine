@@ -434,6 +434,25 @@ function _Engine() {
     };
 
     /**
+     * Execute the given action and required pass or error callbacks.
+     * @param  {Action} action Action instance
+     * @return {Boolean} action result
+     */
+    var __execAction = function( action ) {
+        var result = action.runExec();
+        if ( result ) {
+            action.runPass( result );
+        } else {
+            action.runError( result );
+        }
+        action.active = false;
+        if ( action.periodic !== 0 ) {
+            setTimeout( __reloadAction( action ), action.periodic );
+        }
+        return result;
+    };
+
+    /**
      * Run actions when engine runs.
      * @return {undefined} Nothing
      */
@@ -442,25 +461,9 @@ function _Engine() {
         for ( var i in this.actions ) {
             var action = this.actions[ i ];
             if ( action.active ) {
-                var result = action.runExec();
-                // var result = action.execute.call( action, action.execArgs );
-                if ( result ) {
-                    action.runPass( result );
-                    // if ( action.callback ) {
-                    //     action.callback.call( action, result, action.cbArgs );
-                    // }
-                } else {
-                    action.runError( result );
-                    // if ( action.errorCb ) {
-                    //     action.errorCb.call( action, result, action.errorCbArgs );
-                    // }
-                }
-                action.active = false;
+                __execAction( action );
                 if ( action.remove ) {
                     toDelete.push( i );
-                }
-                if ( action.periodic !== 0 ) {
-                    setTimeout( __reloadAction( action ), action.periodic );
                 }
             }
         }

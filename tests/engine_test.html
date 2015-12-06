@@ -22,7 +22,7 @@
             var callbackArgs;
             var execResult;
             var actor = new NS_Actor.Actor( [ "test actor", Attrs( 100, 50, 5 ), true, PLAYER ] );
-            var actionTest = NS_Action.createAction()
+            var actionTest = NS_Action.createAction();
             actionTest.name = "action test";
             actionTest.type = "test";
             actionTest.execCb.cb = function( args ) {
