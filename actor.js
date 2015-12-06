@@ -32,9 +32,9 @@ function _Actor() {
      */
     this.Actor = function( args ) {
         GObject.apply( this, args );
-        this.attributes = args[ 1 ];
-        this.playable = args[ 2 ] ? args[ 2 ] : true;
-        this.playableSide = args[ 3 ] ? args[ 3 ] : PLAYER;
+        this.attributes = undefined;
+        this.playable = true;
+        this.playableSide = PLAYER;
 
         /**
          * Array of objetos the actor can own.

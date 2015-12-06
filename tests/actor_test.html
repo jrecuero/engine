@@ -14,7 +14,8 @@
         <script type="text/javascript" charset="utf-8">
         QUnit.test( "Actor test", function( assert ) {
             var attrs = new Attrs( 100, 90, 10 );
-            var actor = new NS_Actor.Actor( [ 'me', attrs, true, PLAYER ] );
+            var actor = new NS_Actor.Actor( [ 'me' ] );
+            actor.attributes = attrs;
             assert.ok( actor.name === 'me', "Actor name correct" );
             assert.equal( actor.attributes.life, 100, "Actor life correct" );
             assert.equal( actor.attributes.attack, 90, "Actor attack correct" );
@@ -22,10 +23,9 @@
             assert.ok( actor.playable, "Actor playable correct" );
             assert.equal( actor.playableSide, PLAYER, "Actor playable side correct" );
 
-            var enemy = new NS_Actor.Actor( [ 'me',
-                                              new Attrs( 100, 50, 10 ),
-                                              true,
-                                              PLAYER ] );
+            var enemy = new NS_Actor.Actor( [ 'me' ] );
+            enemy.attributes = new Attrs( 100, 50, 10 );
+            enemy.playableSide = PLAYER;
             var damage = actor.damage( enemy );
             assert.equal( damage, 80, "Actor damage enemy correct" );
             assert.equal( enemy.attributes.life, 20, "Enemy life after first damage correct" );

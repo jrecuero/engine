@@ -18,40 +18,64 @@ function test_event_two_goblin_battle() {
     var takeB;
     var dropB;
     var targetS;
+    var logBox;
 
     var createButtons = function() {
-        moveB = document.createElement( "input" );
-        moveB.type = "button";
-        moveB.value = "move";
-        moveB.onclick = that.on_move;
-        document.body.appendChild( moveB );
+        moveB  = NS_UI.button( "move", that.on_move );
+        actionB = NS_UI.button( "action", that.on_action );
+        useB = NS_UI.button( "use", that.on_use );
+        takeB = NS_UI.button( "take", that.on_take );
+        dropB = NS_UI.button( "drop", that.on_drop );
+        targetS = NS_UI.select();
+        logBox = NS_UI.textarea.create( 20, 40 );
+    };
 
-        actionB = document.createElement( "input" );
-        actionB.type = "button";
-        actionB.value = "action";
-        actionB.onclick = that.on_action;
-        document.body.appendChild( actionB );
+    var testLog = function( message ) {
+        NS_UI.textarea.append( logBox, message );
+    };
 
-        useB = document.createElement( "input" );
-        useB.type = "button";
-        useB.value = "use";
-        useB.onclick = that.on_use;
-        document.body.appendChild( useB );
+    var createActors = function() {
+        jose = new NS_Actor.Actor( [ "jose" ] );
+        jose.attributes = new Attrs( 100, 50, 5 );
 
-        takeB = document.createElement( "input" );
-        takeB.type = "button";
-        takeB.value = "take";
-        takeB.onclick = that.on_take;
-        document.body.appendChild( takeB );
+        goblin1 = new NS_Actor.Actor( [ "goblin1" ] );
+        goblin1.attributes = new Attrs( 80, 8, 1 );
+        goblin1.playableSide = ENEMY;
 
-        dropB = document.createElement( "input" );
-        dropB.type = "button";
-        dropB.value = "drop";
-        dropB.onclick = that.on_drop;
-        document.body.appendChild( dropB );
+        goblin2 = new NS_Actor.Actor( [ "goblin2" ] );
+        goblin2.attributes = new Attrs( 80, 8, 1 );
+        goblin2.playableSide = ENEMY;
 
-        targetS = document.createElement( "select" );
-        document.body.appendChild( targetS );
+        var eventCreateActors = NS_Action.createAction();
+        eventCreateActors.name = "create actors";
+        eventCreateActors.type = "actor";
+        eventCreateActors.execCb.cb =  function( args ) {
+            if ( battleCount === MAX_BATTLE_COUNT ) {
+                NS_GEngine.addElements( "actor", [ jose ] );
+            } else {
+                NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
+            }
+            return true;
+        };
+        NS_GEngine.addElement( "action", eventCreateActors ).active = true;
+    };
+
+    var createBattle = function() {
+        var actionBattle = NS_Action.battle();
+        actionBattle.passCb.cb = function() {
+            battleCount++;
+            return true;
+        };
+        actionBattle.errorCb.cb = function() {
+            testLog( "goblins are already dead." );
+            userStep = 0;
+            removeAllTargets();
+            NS_GEngine.delElements( "actor", [ jose ] );
+            actionB.disabled = true;
+            moveB.disabled = false;
+            return true;
+        };
+        NS_GEngine.addElement( "action", actionBattle ).active = true;
     };
 
     var removeAllTargets = function() {
@@ -63,47 +87,14 @@ function test_event_two_goblin_battle() {
     this.on_move = function() {
         userSteps++;
         if ( userSteps <= STEPS_TO_BATTLE ) {
-            NS_GEngine.addElement( "action", new NS_Action.move( userSteps ) ).active = true;
+            NS_GEngine.addElement( "action", new NS_Action.move( userSteps, testLog ) ).active = true;
         } else {
-            NS_UI.log( "Battle Start!" );
+            testLog( "Battle Start!" );
             userSteps = 0;
             actionB.disabled = false;
             moveB.disabled = true;
-            jose = new NS_Actor.Actor( [ "jose", new Attrs( 100, 50, 5 ), true, PLAYER ] );
-            goblin1 = new NS_Actor.Actor( [ "goblin1", new Attrs( 80, 8, 1 ), true, ENEMY ] );
-            goblin2 = new NS_Actor.Actor( [ "goblin2", new Attrs( 80, 8, 1 ), true, ENEMY ] );
-
-            var eventCreateActors = NS_Action.createAction();
-            eventCreateActors.name = "create actors";
-            eventCreateActors.type = "actor";
-            eventCreateActors.execCb.args = [ "jose", "goblins" ];
-            eventCreateActors.execCb.cb =  function( args ) {
-                if ( battleCount === MAX_BATTLE_COUNT ) {
-                    NS_GEngine.addElements( "actor", [ jose ] );
-                } else {
-                    NS_UI.log( "Create " + args[ 0 ] + ", " + args[ 1 ] );
-                    NS_GEngine.addElements( "actor", [ jose, goblin1, goblin2 ] );
-                }
-                return true;
-            };
-
-            NS_GEngine.addElement( "action", eventCreateActors ).active = true;
-            var actionBattle = NS_Action.battle();
-            actionBattle.passCb.cb = function() {
-                battleCount++;
-                return true;
-            };
-            actionBattle.errorCb.cb = function() {
-                NS_UI.log( "goblins are already dead." );
-                userStep = 0;
-                removeAllTargets();
-                NS_GEngine.delElements( "actor", [ jose ] );
-                actionB.disabled = true;
-                moveB
-       .disabled = false;
-                return true;
-            };
-            NS_GEngine.addElement( "action", actionBattle ).active = true;
+            createActors();
+            createBattle();
         }
     };
 
@@ -117,7 +108,7 @@ function test_event_two_goblin_battle() {
                 NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
                 break;
             case NS_GEngine.state.IN_BATTLE_END:
-                NS_UI.log( "Battle has ended" );
+                testLog( "Battle has ended" );
                 break;
             default:
                 break;
@@ -185,6 +176,7 @@ function test_event_two_goblin_battle() {
     };
 
     NS_GEngine.start();
+    NS_GEngine.log = testLog;
 }
 
 var twoGoblinBattle = new test_event_two_goblin_battle();

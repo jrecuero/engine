@@ -214,23 +214,6 @@ function _Evento() {
             return undefined;
         };
 
-        // /**
-        //  * Evento schedule next action in the evento.
-        //  * @type {Action}
-        //  */
-        // this.actionScheduleNextAction =
-        //     new NS_Action.Action( [ "evento schedule",
-        //                             "evento",
-        //                             function() {
-        //                                 setTimeout( function() {
-        //                                     that.runAction();
-        //                                 }, 1 );
-        //                                 return true;
-        //                             },
-        //                             undefined,
-        //                             false,
-        //                             true ] );
-
         /**
          * Add an action to the event
          * @param {_Action} action Event action.
@@ -282,7 +265,6 @@ function _Evento() {
             if ( __canRunPage( page_i ) && __pages[ page_i ].actions.length ) {
                 var action = __pages[ page_i ].actions.shift();
                 NS_Evento.engine.addElement( "action", action ).active = true;
-                // NS_Evento.engine.addElement( "action", this.actionScheduleNextAction ).active = true;
                 setTimeout( that.runAction, 1 );
             }
             return true;

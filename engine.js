@@ -13,6 +13,18 @@ function _Engine() {
     var that = this;
 
     /**
+     * Attribute that stores the log method to use in the engine.
+     * @type {Function}
+     */
+    this.log = NS_UI.log;
+
+    /**
+     * Attribute that stores the error method to use in the engine.
+     * @type {Function}
+     */
+    this.error = NS_UI.error;
+
+    /**
      * Generate the next available engine ID.
      * @return {int} Next available engine ID
      */
@@ -312,7 +324,7 @@ function _Engine() {
     this.initBattle = function() {
         this.battle.actors = [];
         if ( this.actors.length <= 1) {
-            NS_UI.error( "Not enough actors for battle: " + this.actors.length );
+            this.error( "Not enough actors for battle: " + this.actors.length );
             return false;
         }
         for ( var i in this.actors ) {
@@ -487,7 +499,7 @@ function _Engine() {
     this.logBattleRunResultTurn = function() {
         var originator = this.battle.originator;
         var target = this.battle.target;
-        NS_UI.log( originator.name + " attack " + target.name +
+        this.log( originator.name + " attack " + target.name +
                   "[" + target.attributes.life + "]" );
     };
 
@@ -509,7 +521,7 @@ function _Engine() {
             this.customAvailableTarget();
         } else {
             var actor = this.battle.originator;
-            NS_UI.log( actor.name + " won the battle" );
+            this.log( actor.name + " won the battle" );
             this.state.set( this.state.IN_BATTLE_END );
         }
     };

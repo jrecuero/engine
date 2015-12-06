@@ -21,7 +21,8 @@
             var execArgs;
             var callbackArgs;
             var execResult;
-            var actor = new NS_Actor.Actor( [ "test actor", Attrs( 100, 50, 5 ), true, PLAYER ] );
+            var actor = new NS_Actor.Actor( [ "test actor" ] );
+            actor.attributes = new Attrs( 100, 50, 5 );
             var actionTest = NS_Action.createAction();
             actionTest.name = "action test";
             actionTest.type = "test";

@@ -30,6 +30,7 @@ function _Action() {
      * @class
      */
     this.Action = {
+        objId: undefined,
         name: undefined,
         type: undefined,
         execCb: { cb: undefined, args: [] },
@@ -57,6 +58,7 @@ function _Action() {
 
     this.createAction = function() {
         var action = Object.create( this.Action );
+        action.objId = (new GObject()).objId;
         action.execCb = { cb: undefined, args: [] };
         action.passCb = { cb: undefined, args: [] };
         action.errorCb = { cb: undefined, args: [] };
@@ -68,13 +70,14 @@ function _Action() {
      * @param {Integer} steps Number of steps to move
      * @return {Boolean} Always true
      */
-    this.move = function( steps ) {
+    this.move = function( steps, log_cb ) {
         var obj = that.createAction();
         obj.name = "move";
         obj.type = "move";
         obj.execCb.args = [ steps ];
         obj.execCb.cb = function( args ) {
-                NS_UI.log( "you moved " + args[ 0 ] );
+                // NS_UI.log( "you moved " + args[ 0 ] );
+                log_cb ( "you moved " + args[ 0 ] );
                 return true;
         };
         return obj;

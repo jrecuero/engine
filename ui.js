@@ -44,6 +44,37 @@ function _UserItf() {
     this.prompt = function( str ) {
         return prompt( str );
     };
+
+    this.button = function( name, handler, group ) {
+        var button = document.createElement( "input" );
+        button.type = "button";
+        button.value = name;
+        button.onclick = handler;
+        document.body.appendChild( button );
+        return button;
+    };
+
+    this.select = function( group ) {
+        var selection = document.createElement( "select" );
+        document.body.appendChild( selection );
+        return selection;
+    };
+
+    this.textarea = {
+        create: function( rows, cols, group ) {
+            var textarea = document.createElement( "textarea" );
+            textarea.rows = rows;
+            textarea.cols = cols;
+            document.body.appendChild( textarea );
+            return textarea;
+        },
+        append: function( text_area, message ) {
+            var textArray = text_area.value.split( "\n" );
+            textArray.push( message );
+            text_area.value = textArray.join( "\n" );
+            return text_area;
+        }
+    };
 }
 
 var NS_UI = new _UserItf();
