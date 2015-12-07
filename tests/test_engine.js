@@ -87,7 +87,7 @@ function test_event_two_goblin_battle() {
     this.on_move = function() {
         userSteps++;
         if ( userSteps <= STEPS_TO_BATTLE ) {
-            NS_GEngine.addElement( "action", new NS_Action.move( userSteps, testLog ) ).active = true;
+            NS_GEngine.addElement( "action", new NS_Action.move( userSteps ) ).active = true;
         } else {
             testLog( "Battle Start!" );
             userSteps = 0;
@@ -116,7 +116,7 @@ function test_event_two_goblin_battle() {
     };
 
     this.on_use = function() {
-        NS_GEngine.addElement( "action", new NS_Action.use( "object", undefined, "yepes!" ) ).active = true;
+        NS_GEngine.addElement( "action", new NS_Action.use( "object" ) ).active = true;
     };
 
     this.on_take = function() {
@@ -177,6 +177,7 @@ function test_event_two_goblin_battle() {
 
     NS_GEngine.start();
     NS_GEngine.log = testLog;
+    NS_Action.log = testLog;
 }
 
 var twoGoblinBattle = new test_event_two_goblin_battle();

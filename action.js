@@ -16,6 +16,12 @@ function _Action() {
     var __engine;
 
     /**
+     * Log function to be used by default.
+     * @type {Function}
+     */
+    this.log = NS_UI.log;
+
+    /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
      * @return {Boolean} Always true
@@ -71,13 +77,13 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.move = function( steps, log_cb ) {
+        log_cb = log_cb ? log_cb : that.log;
         var obj = that.createAction();
         obj.name = "move";
         obj.type = "move";
         obj.execCb.args = [ steps ];
         obj.execCb.cb = function( args ) {
-                // NS_UI.log( "you moved " + args[ 0 ] );
-                log_cb ( "you moved " + args[ 0 ] );
+                log_cb( "you moved " + args[ 0 ] );
                 return true;
         };
         return obj;
@@ -88,18 +94,19 @@ function _Action() {
      * @param {String} Object to use
      * @return {Boolean} Always true
      */
-    this.use = function( use_obj ) {
+    this.use = function( use_obj, log_cb ) {
+        log_cb = log_cb ? log_cb : that.log;
         var obj = that.createAction();
         obj.name = "use";
         obj.type = "use";
         obj.execCb.args = [ use_obj ];
         obj.execCb.cb = function( args ) {
-            NS_UI.log( "you used " + args[ 0 ] );
+            log_cb( "you used " + args[ 0 ] );
             return true;
         };
         obj.passCb.args = [ use_obj ];
         obj.passCb.cb = function ( args ) {
-            NS_UI.log( "used callback with " + args[ 0 ] );
+            log_cb( "used callback with " + args[ 0 ] );
         };
         return obj;
     };
@@ -109,13 +116,14 @@ function _Action() {
      * @param {String} Object to take
      * @return {Boolean} Always true
      */
-    this.take = function( take_obj ) {
+    this.take = function( take_obj, log_cb ) {
+        log_cb = log_cb ? log_cb : that.log;
         var obj = that.createAction();
         obj.name = "take";
         obj.type = "take";
         obj.execCb.args = [ take_obj ];
         obj.execCb.cb = function( args ) {
-            NS_UI.log( "you took " + args[ 0 ] );
+            log_cb( "you took " + args[ 0 ] );
             return true;
         };
         return obj;
@@ -126,13 +134,14 @@ function _Action() {
      * @param {String} Object to drop
      * @return {Boolean} Always true
      */
-    this.drop = function( drop_obj ) {
+    this.drop = function( drop_obj, log_cb ) {
+        log_cb = log_cb ? log_cb : that.log;
         var obj = that.createAction();
         obj.name = "drop";
         obj.type = "drop";
         obj.execCb.args = [ drop_obj ];
         obj.execCb.cb = function( args ) {
-            NS_UI.log( "you drop " + args[ 0 ] );
+            log_cb( "you drop " + args[ 0 ] );
             return true;
         };
         return obj;
@@ -172,12 +181,13 @@ function _Action() {
      * Defense Action class for defense action.
      * @return {Boolean} Always true
      */
-    this.defense = function() {
+    this.defense = function( log_cb ) {
+        log_cb = log_cb ? log_cb : this.log;
         var obj = that.createAction();
         obj.name = "defense";
         obj.type = "defense";
         obj.execCb.cb = function( args ) {
-            NS_UI.log( "you defend" );
+            log_cb( "you defend" );
             return true;
         };
         return obj;

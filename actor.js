@@ -99,6 +99,32 @@ function _Actor() {
     };
     inheritKlass( GObject, this.Actor );
 
+    /**
+     * Player class
+     * @param {Array} args Arguments required for the constructor
+     * @return {Boolean} Always true
+     */
+    this.Player = function( args ) {
+        that.Actor.apply( this, args );
+
+        this.ui = {
+            move: { widget: undefined, onclick: undefined },
+            action: { widget: undefined, onclick: undefined },
+            use: { widget: undefined, onclick: undefined },
+            take: { widget: undefined, onclick: undefined },
+            drop: { widget: undefined, onclick: undefined },
+        };
+
+        this.createWidgets = function() {
+            this.ui.move.widget = NS_UI.button( "move", this.ui.move.onclick );
+            this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick );
+            this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick);
+            this.ui.take.widget = NS_UI.button( "take", that.ui.take.onclick );
+            this.ui.drop.widget = NS_UI.button( "drop", that.ui.drop.onclick );
+        };
+    };
+    inheritKlass( that.Actor, this.Player);
+
     return true;
 }
 
