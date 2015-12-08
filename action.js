@@ -6,8 +6,8 @@ function _Action() {
     /**
      * Keep a copy for the object instance.
      * @type {_Action}
-     */
-    var that = this;
+     __*/
+    var __that = this;
 
     /**
      * Game engine instance
@@ -19,7 +19,7 @@ function _Action() {
      * Log function to be used by default.
      * @type {Function}
      */
-    this.log = NS_UI.log;
+    var __log = NS_UI.log;
 
     /**
      * Set game engine for the attribute variable
@@ -29,6 +29,11 @@ function _Action() {
     this.setEngine = function( engine ) {
         __engine = engine;
         return true;
+    };
+
+    this.setLog = function( log ) {
+        __log = log;
+        return __log;
     };
 
     /**
@@ -45,15 +50,18 @@ function _Action() {
         active: false,
         periodic: 0,
         remove: true,
+
         runExec: function() {
             return this.execCb.cb( this.execCb.args );
         },
+
         runPass: function( result ) {
             if ( this.passCb.cb ) {
                 return this.passCb.cb( result, this.passCb.args );
             }
             return false;
         },
+
         runError: function( result ) {
             if ( this.errorCb.cb ) {
                 return this.errorCb.cb( result, this.errorCb.args );
@@ -77,8 +85,8 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.move = function( steps, log_cb ) {
-        log_cb = log_cb ? log_cb : that.log;
-        var obj = that.createAction();
+        log_cb = log_cb ? log_cb : __log;
+        var obj = __that.createAction();
         obj.name = "move";
         obj.type = "move";
         obj.execCb.args = [ steps ];
@@ -95,8 +103,8 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.use = function( use_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : that.log;
-        var obj = that.createAction();
+        log_cb = log_cb ? log_cb : __log;
+        var obj = __that.createAction();
         obj.name = "use";
         obj.type = "use";
         obj.execCb.args = [ use_obj ];
@@ -117,8 +125,8 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.take = function( take_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : that.log;
-        var obj = that.createAction();
+        log_cb = log_cb ? log_cb : __log;
+        var obj = __that.createAction();
         obj.name = "take";
         obj.type = "take";
         obj.execCb.args = [ take_obj ];
@@ -135,8 +143,8 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.drop = function( drop_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : that.log;
-        var obj = that.createAction();
+        log_cb = log_cb ? log_cb : __log;
+        var obj = __that.createAction();
         obj.name = "drop";
         obj.type = "drop";
         obj.execCb.args = [ drop_obj ];
@@ -152,11 +160,11 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.attack = function() {
-        var obj = that.createAction();
+        var obj = __that.createAction();
         obj.name = "attack";
         obj.type = "attack";
         obj.execCb.cb = function( args ) {
-            NS_GEngine.battleAttack();
+            NS_Battle.battleAttack();
             return true;
         };
         return obj;
@@ -167,11 +175,11 @@ function _Action() {
      * @return {Boolean} Always true
      */
     this.battle = function() {
-        var obj = that.createAction();
+        var obj = __that.createAction();
         obj.name = "battle";
         obj.type = "battle";
         obj.execCb.cb = function( args ) {
-            return NS_GEngine.initBattle();
+            return NS_Battle.initBattle();
         };
         return obj;
     };
@@ -182,7 +190,7 @@ function _Action() {
      */
     this.defense = function( log_cb ) {
         log_cb = log_cb ? log_cb : this.log;
-        var obj = that.createAction();
+        var obj = __that.createAction();
         obj.name = "defense";
         obj.type = "defense";
         obj.execCb.cb = function( args ) {

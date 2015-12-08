@@ -7,7 +7,7 @@ function _Scene() {
      * Keep a copy for the object instance.
      * @type {_Scene}
      */
-    var that = this;
+    var __that = this;
 
     /**
      * Game engine instance
@@ -62,7 +62,7 @@ function _Scene() {
 
         for ( i = 0; i < __cellMap.length; i++ ) {
             for ( j = 0; j < __cellMap[ i ].length; j++ ) {
-                __cellMap[ i ][ j ] = new that.Cell( i, j , null );
+                __cellMap[ i ][ j ] = new __that.Cell( i, j , null );
             }
         }
 
@@ -83,7 +83,7 @@ function _Scene() {
         };
 
         this.move = {
-            default: new that.Cell( 0, 0 ),
+            default: new __that.Cell( 0, 0 ),
             forward: function( x, y ) {
                 if ( __layout.isInside( [ x, y - 1 ] ) ) {
                     return [ x, y - 1 ];
@@ -176,7 +176,7 @@ function _Scene() {
 
         var __xdim = xdim;
         var __ydim = ydim;
-        var __layout = new that.Layout( name + '-layout', __xdim, __ydim );
+        var __layout = new __that.Layout( name + '-layout', __xdim, __ydim );
 
         /**
          * Get cell at the given position.

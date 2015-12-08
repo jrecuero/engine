@@ -7,7 +7,7 @@ function _UserItf() {
      * Keep a copy for the object instance.
      * @type {_UserIf}
      */
-    that = this;
+    var __that = this;
 
     /**
      * User interface log string.
@@ -54,10 +54,21 @@ function _UserItf() {
         return button;
     };
 
-    this.select = function( group ) {
-        var selection = document.createElement( "select" );
-        document.body.appendChild( selection );
-        return selection;
+    this.select = {
+        create: function( group ) {
+            var selection = document.createElement( "select" );
+            document.body.appendChild( selection );
+            return selection;
+        },
+
+        append: function( selection, message, handler, group ) {
+            var opt = document.createElement( "option" );
+            opt.value = message;
+            opt.innerHTML = message;
+            opt.handler = handler;
+            selection.appendChild( opt );
+            return selection;
+        },
     };
 
     this.textarea = {
@@ -68,6 +79,7 @@ function _UserItf() {
             document.body.appendChild( textarea );
             return textarea;
         },
+
         append: function( text_area, message ) {
             var textArray = text_area.value.split( "\n" );
             textArray.push( message );

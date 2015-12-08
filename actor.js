@@ -7,7 +7,7 @@ function _Actor() {
      * Keep a copy for the object instance.
      * @type {_Actor}
      */
-    var that = this;
+    var __that = this;
 
     /**
      * Game engine instance
@@ -19,7 +19,7 @@ function _Actor() {
      * Attribute that stores the log method to use in the engine.
      * @type {Function}
      */
-    this.log = NS_UI.log;
+    var __log = NS_UI.log;
 
     /**
      * Set game engine for the attribute variable
@@ -29,6 +29,11 @@ function _Actor() {
     this.setEngine = function( engine ) {
         __engine = engine;
         return true;
+    };
+
+    this.setLog = function( log ) {
+        __log = log;
+        return __log;
     };
 
     /**
@@ -140,7 +145,7 @@ function _Actor() {
      * @return {Boolean} Always true
      */
     this.Player = function( args ) {
-        that.Actor.apply( this, [ args ] );
+        __that.Actor.apply( this, [ args ] );
         var __actor = this;
 
         var __uiData = { widget: undefined, onclick: undefined };
@@ -148,25 +153,25 @@ function _Actor() {
         var onMoveForward = function() {
             var newPos = __engine.playingScene.move.forward( __actor.cell.x, __actor.cell.y );
             __actor.cell.update( newPos );
-            that.log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         var onMoveBackward = function() {
             var newPos = __engine.playingScene.move.backward( __actor.cell.x, __actor.cell.y );
             __actor.cell.update( newPos );
-            that.log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         var onMoveLeft = function() {
             var newPos = __engine.playingScene.move.left( __actor.cell.x , __actor.cell.y );
             __actor.cell.update( newPos );
-            that.log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         var onMoveRight = function() {
             var newPos = __engine.playingScene.move.right( __actor.cell.x, __actor.cell.y );
             __actor.cell.update( newPos );
-            that.log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         this.ui = {
@@ -194,7 +199,7 @@ function _Actor() {
             this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick );
         };
     };
-    inheritKlass( that.Actor, this.Player );
+    inheritKlass( __that.Actor, this.Player );
 
     return true;
 }

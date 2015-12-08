@@ -23,11 +23,6 @@ function test_event_two_goblin_battle() {
 
     var createButtons = function() {
 
-        // MoveB  = NS_UI.button( "move", that.on_move );
-        // actionB = NS_UI.button( "action", that.on_action );
-        // useB = NS_UI.button( "use", that.on_use );
-        // takeB = NS_UI.button( "take", that.on_take );
-        // dropB = NS_UI.button( "drop", that.on_drop );
         jose = new NS_Actor.Player( [ "jose" ] );
         // jose.ui.forward.onclick = that.on_move;
         jose.ui.action.onclick = that.on_action;
@@ -36,7 +31,7 @@ function test_event_two_goblin_battle() {
         jose.ui.drop.onclick = that.on_drop;
         jose.createWidgets();
         jose.cell = mainScene.getCellAt( 2, 4 );
-        targetS = NS_UI.select();
+        targetS = NS_UI.select.create();
         logBox = NS_UI.textarea.create( 20, 40 );
 
         moveB = jose.ui.forward.widget;
@@ -123,15 +118,15 @@ function test_event_two_goblin_battle() {
     };
 
     this.on_action = function() {
-        var state = NS_GEngine.state.get();
+        var state = NS_Battle.state.get();
         switch ( state ) {
-            case NS_GEngine.state.NONE:
+            case NS_Battle.state.NONE:
                 break;
-            case NS_GEngine.state.IN_BATTLE_WAITING_INPUT:
-                NS_GEngine.state.next();
+            case NS_Battle.state.IN_BATTLE_WAITING_INPUT:
+                NS_Battle.state.next();
                 NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
                 break;
-            case NS_GEngine.state.IN_BATTLE_END:
+            case NS_Battle.state.IN_BATTLE_END:
                 testLog( "Battle has ended" );
                 break;
             default:
@@ -151,43 +146,45 @@ function test_event_two_goblin_battle() {
         NS_GEngine.addElement( "action", new NS_Action.drop( "object" ) ).active = true;
     };
 
-    NS_GEngine.customAvailableTarget = function() {
+    NS_Battle.customAvailableTarget = function() {
         removeAllTargets();
-        var opt;
+        // var opt;
         var i;
         if ( jose.turn ) {
-            var enemies = NS_GEngine.battle.enemyActors();
+            var enemies = NS_Battle.enemyActors( NS_GEngine.actors );
             for ( i in enemies ) {
-                opt = document.createElement( "option" );
+                // opt = document.createElement( "option" );
                 var enemy = enemies[ i ];
-                opt.value = enemy.name;
-                opt.innerHTML = enemy.name;
-                opt.theTarget = enemy;
-                targetS.appendChild( opt );
+                NS_UI.select.append( targetS, enemy.name, enemy );
+                // opt.value = enemy.name;
+                // opt.innerHTML = enemy.name;
+                // opt.handler = enemy;
+                // targetS.appendChild( opt );
             }
         } else {
-            var players = NS_GEngine.battle.playerActors();
+            var players = NS_Battle.playerActors( NS_GEngine.actors );
             for ( i in players ) {
-                opt = document.createElement( "option" );
+                // opt = document.createElement( "option" );
                 var player = players[ i ];
-                opt.value = player.name;
-                opt.innerHTML = player.name;
-                opt.theTarget = player;
-                targetS.appendChild( opt );
+                NS_UI.select.append( targetS, player.name, player );
+                // opt.value = player.name;
+                // opt.innerHTML = player.name;
+                // opt.handler = player;
+                // targetS.appendChild( opt );
             }
         }
     };
 
-    NS_GEngine.customSelectNextTarget = function() {
+    NS_Battle.customSelectNextTarget = function() {
         var index = targetS.selectedIndex;
-        return targetS[ index ].theTarget;
+        return targetS[ index ].handler;
     };
 
-    NS_GEngine.customSelectNextAiAction = function() {
+    NS_Battle.customSelectNextAiAction = function() {
         NS_GEngine.addElement( "action", new NS_Action.attack() ).active = true;
     };
 
-    NS_GEngine.customAfterBattle = function() {
+    NS_Battle.customAfterBattle = function() {
         actionB.disabled = true;
         moveB.disabled = false;
         removeAllTargets();
@@ -201,10 +198,9 @@ function test_event_two_goblin_battle() {
 
     createMainScene();
     NS_GEngine.start();
-    NS_GEngine.log = testLog;
-    NS_Action.log = testLog;
-    NS_Actor.log = testLog;
+    NS_GEngine.setLog( testLog );
+    NS_Action.setLog( testLog );
+    NS_Actor.setLog( testLog );
 }
 
 var twoGoblinBattle = new test_event_two_goblin_battle();
-
