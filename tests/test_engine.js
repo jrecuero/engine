@@ -11,6 +11,7 @@ function test_event_two_goblin_battle() {
     var userSteps = 0;
     var MAX_BATTLE_COUNT = 1;
     var battleCount = 0;
+    var mainScene;
 
     var moveB;
     var actionB;
@@ -21,13 +22,35 @@ function test_event_two_goblin_battle() {
     var logBox;
 
     var createButtons = function() {
-        moveB  = NS_UI.button( "move", that.on_move );
-        actionB = NS_UI.button( "action", that.on_action );
-        useB = NS_UI.button( "use", that.on_use );
-        takeB = NS_UI.button( "take", that.on_take );
-        dropB = NS_UI.button( "drop", that.on_drop );
+
+        // MoveB  = NS_UI.button( "move", that.on_move );
+        // actionB = NS_UI.button( "action", that.on_action );
+        // useB = NS_UI.button( "use", that.on_use );
+        // takeB = NS_UI.button( "take", that.on_take );
+        // dropB = NS_UI.button( "drop", that.on_drop );
+        jose = new NS_Actor.Player( [ "jose" ] );
+        // jose.ui.forward.onclick = that.on_move;
+        jose.ui.action.onclick = that.on_action;
+        jose.ui.use.onclick = that.on_use;
+        jose.ui.take.onclick = that.on_take;
+        jose.ui.drop.onclick = that.on_drop;
+        jose.createWidgets();
+        jose.cell = mainScene.getCellAt( 2, 4 );
         targetS = NS_UI.select();
         logBox = NS_UI.textarea.create( 20, 40 );
+
+        moveB = jose.ui.forward.widget;
+        actionB = jose.ui.action.widget;
+        useB = jose.ui.use.widget;
+        takeB = jose.ui.take.widget;
+        dropB = jose.ui.drop.widget;
+    };
+
+    var createMainScene = function() {
+        mainScene = new NS_Scene.Scene( "main-scene", 5, 5 );
+        var keyObjScene = new NS_Scene.ObjetoScene( [ 'key' ] );
+        mainScene.placeObjetoInScene( keyObjScene, mainScene.getCellAt( 1, 1 ) );
+        NS_GEngine.addElement( "scene", mainScene );
     };
 
     var testLog = function( message ) {
@@ -35,7 +58,8 @@ function test_event_two_goblin_battle() {
     };
 
     var createActors = function() {
-        jose = new NS_Actor.Actor( [ "jose" ] );
+
+        // Jose = new NS_Actor.Player( [ "jose" ] );
         jose.attributes = new Attrs( 100, 50, 5 );
 
         goblin1 = new NS_Actor.Actor( [ "goblin1" ] );
@@ -175,9 +199,11 @@ function test_event_two_goblin_battle() {
         actionB.disabled = true;
     };
 
+    createMainScene();
     NS_GEngine.start();
     NS_GEngine.log = testLog;
     NS_Action.log = testLog;
+    NS_Actor.log = testLog;
 }
 
 var twoGoblinBattle = new test_event_two_goblin_battle();

@@ -13,6 +13,7 @@ function GObject() {
         return GObject.ID;
     };
     this.objId = this.getNextObjId();
+    this.log = undefined;
     return true;
 }
 GObject.ID = 0;

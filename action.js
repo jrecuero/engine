@@ -59,12 +59,12 @@ function _Action() {
                 return this.errorCb.cb( result, this.errorCb.args );
             }
             return false;
-        },
+        }
     };
 
     this.createAction = function() {
         var action = Object.create( this.Action );
-        action.objId = (new GObject()).objId;
+        action.objId = ( new GObject() ).objId;
         action.execCb = { cb: undefined, args: [] };
         action.passCb = { cb: undefined, args: [] };
         action.errorCb = { cb: undefined, args: [] };
@@ -105,7 +105,7 @@ function _Action() {
             return true;
         };
         obj.passCb.args = [ use_obj ];
-        obj.passCb.cb = function ( args ) {
+        obj.passCb.cb = function( args ) {
             log_cb( "used callback with " + args[ 0 ] );
         };
         return obj;
@@ -161,7 +161,6 @@ function _Action() {
         };
         return obj;
     };
-
 
     /**
      * Start Battle Action class for battle action.

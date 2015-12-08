@@ -28,38 +28,47 @@ function _Scene() {
      * @param {Array} args Arguments required for the constructor
      * @return {Boolean} Always true
      */
-    this.Cell = function( args ) {
-        GObject.apply( this, args );
-
-        var __position = args && args[ 1 ] ? args[ 1 ] : undefined;
-        var __image = args && args[ 2 ] ? args[ 2 ] : undefined;
-
+    this.Cell = function( x, y, image ) {
+        var __image = image;
+        this.x = x;
+        this.y = y;
+        this.getPos = function() {
+            return [ this.x, this.y ];
+        };
+        this.update = function( position ) {
+            this.x = position[ 0 ];
+            this.y = position[ 1 ];
+        };
         return true;
     };
-    inheritKlass( GObject, this.Cell );
 
     /**
      * Layout to be used in scenes.
      * @param {Array} args Arguments required for the constructor
      * @return {Boolean} Always true
      */
-    this.Layout = function( args ) {
-        GObject.apply( this, args );
+    this.Layout = function( name, xdim, ydim ) {
+        GObject.apply( this, [ name ] );
 
-        var __xdim = args[ 1 ];
-        var __ydim = args[ 2 ];
+        var __layout = this;
+        var __xdim = xdim;
+        var __ydim = ydim;
         var __cellMap = new Array( __xdim );
         var i , j;
 
-        for ( i in __cellMap ) {
+        for ( i = 0; i < __cellMap.length; i++ ) {
             __cellMap[ i ] = new Array( __ydim );
         }
 
-        for ( i in __cellMap ) {
-            for ( j in __cellMap[ i ] ) {
-                __cellMap[ i ][ j ] = new that.Cell( [ 'cell', [ i, j ], null ] );
+        for ( i = 0; i < __cellMap.length; i++ ) {
+            for ( j = 0; j < __cellMap[ i ].length; j++ ) {
+                __cellMap[ i ][ j ] = new that.Cell( i, j , null );
             }
         }
+
+        this.getCellAt = function( x, y ) {
+            return __cellMap[ x ][ y ];
+        };
 
         this.getDim = function() {
             return [ __xdim, __ydim ];
@@ -73,6 +82,34 @@ function _Scene() {
                      ( __cellMap[ x ][ y ] ) );
         };
 
+        this.move = {
+            default: new that.Cell( 0, 0 ),
+            forward: function( x, y ) {
+                if ( __layout.isInside( [ x, y - 1 ] ) ) {
+                    return [ x, y - 1 ];
+                }
+                return [ x, y ];
+            },
+            backward:  function( x, y ) {
+                if ( __layout.isInside( [ x, y + 1 ] ) ) {
+                    return [ x, y + 1 ];
+                }
+                return [ x, y ];
+            },
+            left: function( x, y ) {
+                if ( __layout.isInside( [ x - 1, y ] ) ) {
+                    return [ x - 1, y ];
+                }
+                return [ x, y ];
+            },
+            right: function( x, y ) {
+                if ( __layout.isInside( [ x + 1, y ] ) ) {
+                    return [ x + 1, y ];
+                }
+                return [ x, y ];
+            },
+        };
+
         return true;
     };
     inheritKlass( GObject, this.Layout );
@@ -83,13 +120,13 @@ function _Scene() {
      * @return {Boolean} Always true
      */
     this.ObjetoScene = function( args ) {
-        GObjeto.apply( this, args );
+        GObject.apply( this, args );
 
         /**
-         * Objeto position in the scene layout.
+         * Objeto cell in the scene layout.
          * @type {Object}
          */
-         var __position;
+         var __cell;
 
         /**
          * Array of eventos triggered by the scene objeto.
@@ -97,12 +134,12 @@ function _Scene() {
          */
         var __eventos = [];
 
-        this.setPosition = function( position ) {
-            __position = position;
+        this.setCell = function( cell ) {
+            __cell = cell;
         };
 
-        this.getPosition = function() {
-            return __position;
+        this.getCell = function() {
+            return __cell;
         };
 
         this.addEvento = function( evento ) {
@@ -128,8 +165,8 @@ function _Scene() {
      * @param {Array} args Arguments required for the constructor
      * @return {Boolean} Always true
      */
-    this.Scene = function( args ) {
-        GObject.apply( this, args );
+    this.Scene = function( name, xdim, ydim ) {
+        GObject.apply( this, [ name ] );
 
         /**
          * Array of objetos the actor can own.
@@ -137,11 +174,53 @@ function _Scene() {
          */
         var __objetos = [];
 
-        var __DEFAULT_X_DIM = 3;
-        var __DEFAULT_Y_DIM = 3;
-        var __xdim = args && args[ 1 ] ? args[ 1 ] : __DEFAULT_X_DIM;
-        var __ydim = args && args[ 2 ] ? args[ 2 ] : __DEFAULT_Y_DIM;
-        var __layout = new that.Layout( [ 'scene-layout', __xdim, __ydim ] );
+        var __xdim = xdim;
+        var __ydim = ydim;
+        var __layout = new that.Layout( name + '-layout', __xdim, __ydim );
+
+        /**
+         * Get cell at the given position.
+         * @param  {Integer} x X-position for the cell
+         * @param  {Interger} y Y-position for the cell
+         * @return {Cell} Cell at the given position
+         */
+        this.getCellAt = function( x, y ) {
+            return __layout.getCellAt( x, y );
+        };
+
+        /**
+         * Move class.
+         * @type {Object}
+         */
+        this.move = {
+            forward: function( x, y ) {
+                return __layout.move.forward( x, y );
+            },
+            backward:  function( x, y ) {
+                return __layout.move.backward( x, y );
+            },
+            left: function( x, y ) {
+                return __layout.move.left( x, y );
+            },
+            right: function( x, y ) {
+                return __layout.move.right( x, y );
+            },
+            equal: function( pos1, pos2 ) {
+                return ( ( pos1[ 0] === pos2[ 0 ] ) && ( pos1[ 1 ] === pos2[ 1 ] ) );
+            },
+            canForward: function( x, y ) {
+                return __layout.isInside( [ x, y - 1 ] );
+            },
+            canBackward: function( x, y ) {
+                return __layout.isInside( [ x, y + 1 ] );
+            },
+            canLeft: function( x, y ) {
+                return __layout.isInside( [ x - 1, y ] );
+            },
+            canRight: function( x, y ) {
+                return __layout.isInside( [ x + 1, y ] );
+            },
+        };
 
         /**
          * Add new objeto to the scene.
@@ -163,21 +242,33 @@ function _Scene() {
             return true;
         };
 
-        this.placeObjetoInScene = function( obj, position ) {
-            if ( __layout.isInside( position ) ) {
-                obj.setPosition( position );
+        /**
+         * Place given object in the scene at the given cell.
+         * @param  {ObjectoScene} obj  Objeto scene instance
+         * @param  {Cell} cell Cell to place the object
+         * @return {Boolean} true if objecto placed in cell, false else
+         */
+        this.placeObjetoInScene = function( obj, cell ) {
+            if ( __layout.isInside( cell ) ) {
+                obj.setCell( cell );
                 this.addObjeto( obj );
-                return True;
+                return true;
             }
-            return False;
+            return false;
         };
 
-        this.replaceObjetoInScene = function( obj, position ) {
-            if ( __layout.isInside( position ) ) {
-                obj.setPosition( position );
-                return True;
+        /**
+         * Replace given objeto in the scene at the given cell.
+         * @param  {ObjetoScene} obj  Objeto scene instance to be replaced
+         * @param  {Cell} cell Cell to replace the objeto
+         * @return {Boolean} true if objeto was replaces, false else
+         */
+        this.replaceObjetoInScene = function( obj, cell ) {
+            if ( __layout.isInside( cell ) ) {
+                obj.setCell( cell );
+                return true;
             }
-            return False;
+            return false;
         };
 
         /**
@@ -188,6 +279,10 @@ function _Scene() {
             return __objetos;
         };
 
+        /**
+         * Return layout dimension for the scene.
+         * @return {Array} Array with scene layout dimensions
+         */
         this.getDim = function() {
             return __layout.getDim();
         };

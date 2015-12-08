@@ -13,6 +13,11 @@ function _Engine() {
     var that = this;
 
     /**
+     * Keeps the interval ID returned by setInterval.
+     */
+    var tickId;
+
+    /**
      * Attribute that stores the log method to use in the engine.
      * @type {Function}
      */
@@ -252,6 +257,9 @@ function _Engine() {
                   klass: NS_Action.Action,
                   custom: undefined }
     };
+
+    this.playingScene = undefined;
+    this.playingSceneId = undefined;
 
     /**
      * Select the next target for the turn.
@@ -566,11 +574,28 @@ function _Engine() {
         }
     };
 
+    this.setScene = function( scene_nbr ) {
+        scene_nbr = scene_nbr ? scene_nbr : 0;
+        this.playingSceneId = scene_nbr;
+        sceneTable = this.elementTable.scene.table;
+        sceneLen = sceneTable.length;
+        if ( ( sceneLen === 0 ) || ( sceneLen <= scene_nbr ) ) {
+            return null;
+        } else {
+            this.playingScene = sceneTable[ this.playingSceneId ];
+        }
+        return this.playingScene;
+    };
+
     /**
      * Run engine every tick
      * @return {undefined} Nothing
      */
     this.runTick = function() {
+        if ( this.setScene( this.playingSceneId ) === null ) {
+            clearInterval( tickId );
+            return;
+        }
         if ( this.battle.active ) {
             this.runBattle();
         } else {
@@ -588,7 +613,7 @@ function _Engine() {
     };
 
     this.start = function() {
-        setInterval( function() { that.runTick(); }, 100 );
+        tickId = setInterval( function() { that.runTick(); }, 100 );
     };
 }
 
