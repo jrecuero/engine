@@ -23,22 +23,85 @@ function _Scene() {
         __engine = engine;
     };
 
+    this.Point = function( x, y ) {
+        this.x = x;
+        this.y = y;
+
+        this.set = function( x, y ) {
+            this.x = x;
+            this.y = y;
+            return this;
+        };
+
+        this.setWithPoint = function( point ) {
+            return set( point.x, point.y );
+        };
+
+        this.setWithArray = function( array ) {
+            return set( array[ 0 ], array[ 1 ] );
+        };
+
+        this.getAsArray = function() {
+            return [ this.x, this.y ];
+        };
+
+        this.equal = function( x, y ) {
+            return ( ( this.x === x ) && ( this.y === y ) );
+        };
+
+        this.equalAsPoint = function( point ) {
+            return equal( point.x, point.y );
+        };
+
+        this.equalAsArray = function( array ) {
+            return equal( array[ 0 ], array[ 1] );
+        };
+    };
+
     /**
      * Cell to be used inside every Layout.
      * @param {Array} args Arguments required for the constructor
      * @return {Boolean} Always true
      */
     this.Cell = function( x, y, image ) {
+        this.pos = new Point( x, y );
         var __image = image;
-        this.x = x;
-        this.y = y;
-        this.getPos = function() {
-            return [ this.x, this.y ];
+        var __container = [];
+
+        Object.defineProperty( this, "x", {
+            get: function() {
+                return this.pos.x;
+            },
+            set: function( val ) {
+                this.pos.x = val;
+            }
+        });
+
+        Object.defineProperty( this, "y", {
+            get: function() {
+                return this.pos.y;
+            },
+            set: function( val ) {
+                this.pos.y = val;
+            }
+        });
+
+        this.append = function( entity ) {
+            this.__container.push( entity );
         };
-        this.update = function( position ) {
-            this.x = position[ 0 ];
-            this.y = position[ 1 ];
+
+        this.remove = function( entity ) {
+            NS_Common.removeFromArray( this.__container, entity );
         };
+
+        this.getImage = function() {
+            return __image;
+        }
+
+        this.getContainer = function() {
+            return __container;
+        };
+
         return true;
     };
 
@@ -54,15 +117,11 @@ function _Scene() {
         var __xdim = xdim;
         var __ydim = ydim;
         var __cellMap = new Array( __xdim );
-        var i , j;
 
-        for ( i = 0; i < __cellMap.length; i++ ) {
+        for ( var i = 0; i < __cellMap.length; i++ ) {
             __cellMap[ i ] = new Array( __ydim );
-        }
-
-        for ( i = 0; i < __cellMap.length; i++ ) {
-            for ( j = 0; j < __cellMap[ i ].length; j++ ) {
-                __cellMap[ i ][ j ] = new __that.Cell( i, j , null );
+            for ( var j = 0; j < __cellMap[ i ].length; j++ ) {
+                __cellMap[ i ][ j ] = new Cell( i, j , null );
             }
         }
 
@@ -83,31 +142,49 @@ function _Scene() {
         };
 
         this.move = {
-            default: new __that.Cell( 0, 0 ),
+            defaultCell: new __that.Cell( 0, 0 ),
+
             forward: function( x, y ) {
+                var result = Object.create( that.Point ).set( x, y );
                 if ( __layout.isInside( [ x, y - 1 ] ) ) {
-                    return [ x, y - 1 ];
+                    result.y--;
                 }
-                return [ x, y ];
+                return result;
             },
+
             backward:  function( x, y ) {
+                var result = Object.create( that.Point ).set( x, y );
                 if ( __layout.isInside( [ x, y + 1 ] ) ) {
-                    return [ x, y + 1 ];
+                    result.y++;
                 }
-                return [ x, y ];
+                return result;
             },
+
             left: function( x, y ) {
+                var result = Object.create( that.Point ).set( x, y );
                 if ( __layout.isInside( [ x - 1, y ] ) ) {
-                    return [ x - 1, y ];
+                    result.x--;
                 }
-                return [ x, y ];
+                return result;
             },
+
             right: function( x, y ) {
+                var result = Object.create( that.Point ).set( x, y );
                 if ( __layout.isInside( [ x + 1, y ] ) ) {
-                    return [ x + 1, y ];
+                    result.x++;
                 }
-                return [ x, y ];
+                return result;
             },
+        };
+
+        this.setAt = function( x, y, entity ) {
+            var cell = this.getCellAt( x, y );
+            return cell.append( entity );
+        };
+
+        this.removeAt = function( x, y, entity ) {
+            var cell = this.getCellAt( x, y );
+            return cell.remove( entity );
         };
 
         return true;
@@ -119,8 +196,10 @@ function _Scene() {
      * @param {Array} args Arguments required for the contructor
      * @return {Boolean} Always true
      */
-    this.ObjetoScene = function( args ) {
-        GObject.apply( this, args );
+    this.ObjetoScene = function( entity ) {
+        GObject.apply( this, [ entity.name ] );
+
+        var __entity = entity;
 
         /**
          * Objeto cell in the scene layout.
@@ -134,13 +213,26 @@ function _Scene() {
          */
         var __eventos = [];
 
-        this.setCell = function( cell ) {
-            __cell = cell;
-        };
+        Object.defineProperty( this, 'entity', {
+            get: function() {
+                return __entity;
+            },
+            set: function( val ) {
+                __entity = val;
+                __cell = __entity.cell;
+                return __entity;
+            },
+        });
 
-        this.getCell = function() {
-            return __cell;
-        };
+        Object.defineProperty( this, 'cell', {
+            get: function() {
+                return __cell;
+            },
+            set: function( val ) {
+                __cell = val;
+                return __cell;
+            },
+        });
 
         this.addEvento = function( evento ) {
             __eventos.push( evento );
@@ -196,29 +288,45 @@ function _Scene() {
             forward: function( x, y ) {
                 return __layout.move.forward( x, y );
             },
+
             backward:  function( x, y ) {
                 return __layout.move.backward( x, y );
             },
+
             left: function( x, y ) {
                 return __layout.move.left( x, y );
             },
+
             right: function( x, y ) {
                 return __layout.move.right( x, y );
             },
+
             equal: function( pos1, pos2 ) {
                 return ( ( pos1[ 0] === pos2[ 0 ] ) && ( pos1[ 1 ] === pos2[ 1 ] ) );
             },
+
             canForward: function( x, y ) {
                 return __layout.isInside( [ x, y - 1 ] );
             },
+
             canBackward: function( x, y ) {
                 return __layout.isInside( [ x, y + 1 ] );
             },
+
             canLeft: function( x, y ) {
                 return __layout.isInside( [ x - 1, y ] );
             },
+
             canRight: function( x, y ) {
                 return __layout.isInside( [ x + 1, y ] );
+            },
+
+            setAt: function( x, y, entity ) {
+                return __layout.setAt( x, y, entity );
+            },
+
+            removeAt: function( x, y, entity ) {
+                return __layout.removeAt( x, y, entity );
             },
         };
 
@@ -243,6 +351,25 @@ function _Scene() {
         };
 
         /**
+         * Create a new ObjetoScene based on the given entity and place it in
+         * the scene.
+         * @param  {Object} entity Entity instance for the ObjetoScene
+         * @param  {Cell} cell Cell instance where objeto will be placed
+         * @return {Boolean} true if objeto was created and placed, false else
+         */
+        this.createObjetoInScene = function( entity, cell ) {
+            if ( __layout.isInside( cell ) ) {
+                enity.cell = cell;
+                var obj = new ObjetoScene( entity );
+                obj.cell = cell;
+                this.addObjeto( obj );
+                cell.append(obj);
+                return true;
+            }
+            return false;
+        };
+
+        /**
          * Place given object in the scene at the given cell.
          * @param  {ObjectoScene} obj  Objeto scene instance
          * @param  {Cell} cell Cell to place the object
@@ -250,8 +377,10 @@ function _Scene() {
          */
         this.placeObjetoInScene = function( obj, cell ) {
             if ( __layout.isInside( cell ) ) {
-                obj.setCell( cell );
+                obj.cell = cell;
+                obj.enity.cell = cell;
                 this.addObjeto( obj );
+                cell.append(obj);
                 return true;
             }
             return false;
@@ -265,10 +394,20 @@ function _Scene() {
          */
         this.replaceObjetoInScene = function( obj, cell ) {
             if ( __layout.isInside( cell ) ) {
-                obj.setCell( cell );
+                obj.cell.remove( obj );
+                obj.cell = cell;
+                obj.entity.cell = cell;
+                obj.cell.append( obj );
                 return true;
             }
             return false;
+        };
+
+        this.removeObjetoFromScece = function( obj ) {
+            obj.cell.remove( obj );
+            obj.cell = undefined;
+            obj.enity.cell = undefined;
+            this.removeObjeto( obj );
         };
 
         /**
@@ -277,6 +416,10 @@ function _Scene() {
          */
         this.getObjetos = function() {
             return __objetos;
+        };
+
+        this.getObjetosAtCell = function( cell ) {
+            return cell.getContainer();
         };
 
         /**

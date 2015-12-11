@@ -150,28 +150,27 @@ function _Actor() {
 
         var __uiData = { widget: undefined, onclick: undefined };
 
+        var __onMove = function( new_pos) {
+            __actor.cell.update( new_pos );
+            __engine.playingScene.move.setAt( __actor.cell.x, __actor.cell.y, __actor );
+            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+        };
+
         var onMoveForward = function() {
             var newPos = __engine.playingScene.move.forward( __actor.cell.x, __actor.cell.y );
-            __actor.cell.update( newPos );
-            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+            __onMove( newPos );
         };
 
         var onMoveBackward = function() {
             var newPos = __engine.playingScene.move.backward( __actor.cell.x, __actor.cell.y );
-            __actor.cell.update( newPos );
-            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         var onMoveLeft = function() {
             var newPos = __engine.playingScene.move.left( __actor.cell.x , __actor.cell.y );
-            __actor.cell.update( newPos );
-            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         var onMoveRight = function() {
             var newPos = __engine.playingScene.move.right( __actor.cell.x, __actor.cell.y );
-            __actor.cell.update( newPos );
-            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
         };
 
         this.ui = {

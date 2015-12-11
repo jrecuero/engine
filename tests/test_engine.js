@@ -60,10 +60,12 @@ function test_event_two_goblin_battle() {
         goblin1 = new NS_Actor.Actor( [ "goblin1" ] );
         goblin1.attributes = new Attrs( 80, 8, 1 );
         goblin1.playableSide = ENEMY;
+        goblin1.cell = mainScene.getCellAt( 0, 0 );
 
         goblin2 = new NS_Actor.Actor( [ "goblin2" ] );
         goblin2.attributes = new Attrs( 80, 8, 1 );
         goblin2.playableSide = ENEMY;
+        goblin2.cell = mainScene.getCellAt( 0, 0 );
 
         var eventCreateActors = NS_Action.createAction();
         eventCreateActors.name = "create actors";
