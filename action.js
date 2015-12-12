@@ -16,12 +16,6 @@ function _Action() {
     var __engine;
 
     /**
-     * Log function to be used by default.
-     * @type {Function}
-     */
-    var __log = NS_UI.log;
-
-    /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
      * @return {Boolean} Always true
@@ -29,11 +23,6 @@ function _Action() {
     this.setEngine = function( engine ) {
         __engine = engine;
         return true;
-    };
-
-    this.setLog = function( log ) {
-        __log = log;
-        return __log;
     };
 
     /**
@@ -79,140 +68,141 @@ function _Action() {
         return action;
     };
 
-    /**
-     * Move Action class for movement action.
-     * @param {Integer} steps Number of steps to move
-     * @return {Boolean} Always true
-     */
-    this.move = function( steps, log_cb ) {
-        log_cb = log_cb ? log_cb : __log;
-        var obj = __that.createAction();
-        obj.name = "move";
-        obj.type = "move";
-        obj.execCb.args = [ steps ];
-        obj.execCb.cb = function( args ) {
-                log_cb( "you moved " + args[ 0 ] );
-                return true;
-        };
-        return obj;
-    };
-
-    /**
-     * Use Action class for action.
-     * @param {String} Object to use
-     * @return {Boolean} Always true
-     */
-    this.use = function( use_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : __log;
-        var obj = __that.createAction();
-        obj.name = "use";
-        obj.type = "use";
-        obj.execCb.args = [ use_obj ];
-        obj.execCb.cb = function( args ) {
-            log_cb( "you used " + args[ 0 ] );
-            return true;
-        };
-        obj.passCb.args = [ use_obj ];
-        obj.passCb.cb = function( args ) {
-            log_cb( "used callback with " + args[ 0 ] );
-        };
-        return obj;
-    };
-
-    /**
-     * Take Action class for action.
-     * @param {String} Object to take
-     * @return {Boolean} Always true
-     */
-    this.take = function( take_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : __log;
-        var obj = __that.createAction();
-        obj.name = "take";
-        obj.type = "take";
-        obj.execCb.args = [ take_obj ];
-        obj.execCb.cb = function( args ) {
-            log_cb( "you took " + args[ 0 ] );
-            return true;
-        };
-        return obj;
-    };
-
-    /**
-     * Drop Action class for action.
-     * @param {String} Object to drop
-     * @return {Boolean} Always true
-     */
-    this.drop = function( drop_obj, log_cb ) {
-        log_cb = log_cb ? log_cb : __log;
-        var obj = __that.createAction();
-        obj.name = "drop";
-        obj.type = "drop";
-        obj.execCb.args = [ drop_obj ];
-        obj.execCb.cb = function( args ) {
-            log_cb( "you drop " + args[ 0 ] );
-            return true;
-        };
-        return obj;
-    };
-
-    /**
-     * Attack Action class for attack action.
-     * @return {Boolean} Always true
-     */
-    this.attack = function() {
-        var obj = __that.createAction();
-        obj.name = "attack";
-        obj.type = "attack";
-        obj.execCb.cb = function( args ) {
-            NS_Battle.battleAttack();
-            return true;
-        };
-        return obj;
-    };
-
-    /**
-     * Start Battle Action class for battle action.
-     * @return {Boolean} Always true
-     */
-    this.battle = function() {
-        var obj = __that.createAction();
-        obj.name = "battle";
-        obj.type = "battle";
-        obj.execCb.cb = function( args ) {
-            return NS_Battle.initBattle();
-        };
-        return obj;
-    };
-
-    /**
-     * Defense Action class for defense action.
-     * @return {Boolean} Always true
-     */
-    this.defense = function( log_cb ) {
-        log_cb = log_cb ? log_cb : this.log;
-        var obj = __that.createAction();
-        obj.name = "defense";
-        obj.type = "defense";
-        obj.execCb.cb = function( args ) {
-            log_cb( "you defend" );
-            return true;
-        };
-        return obj;
-    };
-
-    this.checkEnemies = function( at_x, at_y) {
-        var obj = __that.createAction();
-        obj.name = "check enemies";
-        obj.type = "scene";
-        obj.execCb.args = [ at_x, at_y ];
-        obj.execCb.cb = function( args ) {
-            __log("Checking Scene at " + args[0] + ", " + args[1] );
-            return true;
-        };
-        return obj;
-    };
-
     return true;
 }
 
 var NS_Action = new _Action();
+
+/**
+ * Move Action class for movement action.
+ * @param {Integer} steps Number of steps to move
+ * @return {Boolean} Always true
+ */
+_Action.prototype.move = function( steps, log_cb ) {
+    log_cb = log_cb ? log_cb : NS_GEngine.log;
+    var obj = NS_Action.createAction();
+    obj.name = "move";
+    obj.type = "move";
+    obj.execCb.args = [ steps ];
+    obj.execCb.cb = function( args ) {
+            log_cb( "you moved " + args[ 0 ] );
+            return true;
+    };
+    return obj;
+};
+
+/**
+ * Use Action class for action.
+ * @param {String} Object to use
+ * @return {Boolean} Always true
+ */
+_Action.prototype.use = function( use_obj, log_cb ) {
+    log_cb = log_cb ? log_cb : NS_GEngine.log;
+    var obj = NS_Action.createAction();
+    obj.name = "use";
+    obj.type = "use";
+    obj.execCb.args = [ use_obj ];
+    obj.execCb.cb = function( args ) {
+        log_cb( "you used " + args[ 0 ] );
+        return true;
+    };
+    obj.passCb.args = [ use_obj ];
+    obj.passCb.cb = function( args ) {
+        log_cb( "used callback with " + args[ 0 ] );
+    };
+    return obj;
+};
+
+/**
+ * Take Action class for action.
+ * @param {String} Object to take
+ * @return {Boolean} Always true
+ */
+_Action.prototype.take = function( take_obj, log_cb ) {
+    log_cb = log_cb ? log_cb : NS_GEngine.log;
+    var obj = NS_Action.createAction();
+    obj.name = "take";
+    obj.type = "take";
+    obj.execCb.args = [ take_obj ];
+    obj.execCb.cb = function( args ) {
+        log_cb( "you took " + args[ 0 ] );
+        return true;
+    };
+    return obj;
+};
+
+/**
+ * Drop Action class for action.
+ * @param {String} Object to drop
+ * @return {Boolean} Always true
+ */
+_Action.prototype.drop = function( drop_obj, log_cb ) {
+    log_cb = log_cb ? log_cb : NS_GEngine.log;
+    var obj = NS_Action.createAction();
+    obj.name = "drop";
+    obj.type = "drop";
+    obj.execCb.args = [ drop_obj ];
+    obj.execCb.cb = function( args ) {
+        log_cb( "you drop " + args[ 0 ] );
+        return true;
+    };
+    return obj;
+};
+
+/**
+ * Attack Action class for attack action.
+ * @return {Boolean} Always true
+ */
+_Action.prototype.attack = function() {
+    var obj = NS_Action.createAction();
+    obj.name = "attack";
+    obj.type = "attack";
+    obj.execCb.cb = function( args ) {
+        NS_Battle.battleAttack();
+        return true;
+    };
+    return obj;
+};
+
+/**
+ * Start Battle Action class for battle action.
+ * @return {Boolean} Always true
+ */
+_Action.prototype.battle = function( actors ) {
+    var obj = NS_Action.createAction();
+    obj.name = "battle";
+    obj.type = "battle";
+    obj.execCb.args = actors;
+    obj.execCb.cb = function( args ) {
+        return NS_Battle.initBattle( args );
+    };
+    return obj;
+};
+
+/**
+ * Defense Action class for defense action.
+ * @return {Boolean} Always true
+ */
+_Action.prototype.defense = function( log_cb ) {
+    log_cb = log_cb ? log_cb : this.log;
+    var obj = NS_Action.createAction();
+    obj.name = "defense";
+    obj.type = "defense";
+    obj.execCb.cb = function( args ) {
+        log_cb( "you defend" );
+        return true;
+    };
+    return obj;
+};
+
+_Action.prototype.checkEnemies = function( at_x, at_y) {
+    var obj = NS_Action.createAction();
+    obj.name = "check enemies";
+    obj.type = "scene";
+    obj.execCb.args = [ at_x, at_y ];
+    obj.execCb.cb = function( args ) {
+        NS_GEngine.log("Checking Scene at " + args[0] + ", " + args[1] );
+        return true;
+    };
+    return obj;
+};

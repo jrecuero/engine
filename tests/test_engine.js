@@ -30,7 +30,9 @@ function test_event_two_goblin_battle() {
         jose.ui.take.onclick = that.on_take;
         jose.ui.drop.onclick = that.on_drop;
         jose.createWidgets();
-        jose.cell = mainScene.getCellAt( 2, 4 );
+        mainScene.createObjetoInScene( jose,
+                                       mainScene.getCellAt( 2, 4 ),
+                                       NS_Common.entityType.ACTOR );
         targetS = NS_UI.select.create();
         logBox = NS_UI.textarea.create( 20, 40 );
 
@@ -43,8 +45,10 @@ function test_event_two_goblin_battle() {
 
     var createMainScene = function() {
         mainScene = new NS_Scene.Scene( "main-scene", 5, 5 );
-        var keyObjScene = new NS_Scene.ObjetoScene( [ 'key' ] );
-        mainScene.placeObjetoInScene( keyObjScene, mainScene.getCellAt( 1, 1 ) );
+        var keyObj = new NS_Objeto.Objeto( [ 'key'] );
+        mainScene.createObjetoInScene( keyObj,
+                                       mainScene.getCellAt( 1, 1 ),
+                                       NS_Common.entityType.OBJETO );
         NS_GEngine.addElement( "scene", mainScene );
     };
 
@@ -60,12 +64,16 @@ function test_event_two_goblin_battle() {
         goblin1 = new NS_Actor.Actor( [ "goblin1" ] );
         goblin1.attributes = new Attrs( 80, 8, 1 );
         goblin1.playableSide = ENEMY;
-        goblin1.cell = mainScene.getCellAt( 0, 0 );
+        mainScene.createObjetoInScene( goblin1,
+                                       mainScene.getCellAt( 0, 0 ),
+                                       NS_Common.entityType.ACTOR );
 
         goblin2 = new NS_Actor.Actor( [ "goblin2" ] );
         goblin2.attributes = new Attrs( 80, 8, 1 );
         goblin2.playableSide = ENEMY;
-        goblin2.cell = mainScene.getCellAt( 0, 0 );
+        mainScene.createObjetoInScene( goblin2,
+                                       mainScene.getCellAt( 0, 0 ),
+                                       NS_Common.entityType.ACTOR );
 
         var eventCreateActors = NS_Action.createAction();
         eventCreateActors.name = "create actors";
@@ -114,7 +122,7 @@ function test_event_two_goblin_battle() {
             userSteps = 0;
             actionB.disabled = false;
             moveB.disabled = true;
-            createActors();
+            // createActors();
             createBattle();
         }
     };
@@ -150,29 +158,18 @@ function test_event_two_goblin_battle() {
 
     NS_Battle.customAvailableTarget = function() {
         removeAllTargets();
-        // var opt;
         var i;
         if ( jose.turn ) {
-            var enemies = NS_Battle.enemyActors( NS_GEngine.actors );
+            var enemies = NS_Battle.battle.enemyActors( NS_GEngine.actors );
             for ( i in enemies ) {
-                // opt = document.createElement( "option" );
                 var enemy = enemies[ i ];
                 NS_UI.select.append( targetS, enemy.name, enemy );
-                // opt.value = enemy.name;
-                // opt.innerHTML = enemy.name;
-                // opt.handler = enemy;
-                // targetS.appendChild( opt );
             }
         } else {
-            var players = NS_Battle.playerActors( NS_GEngine.actors );
+            var players = NS_Battle.battle.playerActors( NS_GEngine.actors );
             for ( i in players ) {
-                // opt = document.createElement( "option" );
                 var player = players[ i ];
                 NS_UI.select.append( targetS, player.name, player );
-                // opt.value = player.name;
-                // opt.innerHTML = player.name;
-                // opt.handler = player;
-                // targetS.appendChild( opt );
             }
         }
     };
@@ -195,13 +192,13 @@ function test_event_two_goblin_battle() {
 
     window.onload = function() {
         createButtons();
-        actionB.disabled = true;
+        createActors();
+        // actionB.disabled = true;
     };
 
     createMainScene();
     NS_GEngine.start();
-    NS_GEngine.setLog( testLog );
-    NS_Action.setLog( testLog );
+    NS_GEngine.log = testLog;
     NS_Actor.setLog( testLog );
 }
 

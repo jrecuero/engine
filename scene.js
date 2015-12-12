@@ -108,6 +108,16 @@ _Scene.prototype.Cell = function( x, y, image ) {
         return __container;
     };
 
+    this.getEntityFromContainer = function ( entity_type ) {
+        var result = [];
+        for ( var i = 0; i < __container.length; i++ ) {
+            if ( __container[ i ].entityType === entity_type ) {
+                result.push( __container[ i ] );
+            }
+        }
+        return result;
+    };
+
     return true;
 };
 
@@ -202,10 +212,12 @@ inheritKlass( GObject, _Scene.prototype.Layout );
  * @param {Array} args Arguments required for the contructor
  * @return {Boolean} Always true
  */
-_Scene.prototype.ObjetoScene = function( entity ) {
+_Scene.prototype.ObjetoScene = function( entity, entity_type ) {
     GObject.apply( this, [ entity.name ] );
 
     var __entity = entity;
+
+    var __entityType = entity_type;
 
     /**
      * Objeto cell in the scene layout.
@@ -227,6 +239,16 @@ _Scene.prototype.ObjetoScene = function( entity ) {
             __entity = val;
             __cell = __entity.cell;
             return __entity;
+        }
+    } );
+
+    Object.defineProperty( this, "entityType", {
+        get: function() {
+            return __entityType;
+        },
+        set: function( val ) {
+            __entityType = val;
+            return __entityType;
         }
     } );
 
@@ -363,16 +385,16 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
      * @param  {Cell} cell Cell instance where objeto will be placed
      * @return {Boolean} true if objeto was created and placed, false else
      */
-    this.createObjetoInScene = function( entity, cell ) {
-        if ( __layout.isInside( cell ) ) {
-            enity.cell = cell;
-            var obj = new ObjetoScene( entity );
+    this.createObjetoInScene = function( entity, cell, entity_type ) {
+        if ( __layout.isInside( [ cell.x, cell.y ] ) ) {
+            var obj = new NS_Scene.ObjetoScene( entity, entity_type );
+            entity.objScene = obj;
             obj.cell = cell;
             this.addObjeto( obj );
             cell.append( obj );
-            return true;
+            return obj;
         }
-        return false;
+        return undefined;
     };
 
     /**
@@ -382,9 +404,8 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
      * @return {Boolean} true if objecto placed in cell, false else
      */
     this.placeObjetoInScene = function( obj, cell ) {
-        if ( __layout.isInside( cell ) ) {
+        if ( __layout.isInside( [ cell.x, cell.y ] ) ) {
             obj.cell = cell;
-            obj.enity.cell = cell;
             this.addObjeto( obj );
             cell.append( obj );
             return true;
@@ -399,17 +420,16 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
      * @return {Boolean} true if objeto was replaces, false else
      */
     this.replaceObjetoInScene = function( obj, cell ) {
-        if ( __layout.isInside( cell ) ) {
+        if ( __layout.isInside( [ cell.x, cell.y ] ) ) {
             obj.cell.remove( obj );
             obj.cell = cell;
-            obj.entity.cell = cell;
             obj.cell.append( obj );
             return true;
         }
         return false;
     };
 
-    this.removeObjetoFromScece = function( obj ) {
+    this.removeObjetoFromScene = function( obj ) {
         obj.cell.remove( obj );
         obj.cell = undefined;
         obj.enity.cell = undefined;
@@ -434,6 +454,20 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
      */
     this.getDim = function() {
         return __layout.getDim();
+    };
+
+    this.getEntitiesAt = function( entity_type, x, y ) {
+        var cell = this.getCellAt(x, y);
+        var objs = cell.getEntityFromContainer( entity_type );
+        var entities = [];
+        for ( var i = 0; i < objs.length; i++ ) {
+            entities.push( objs[ i ].entity );
+        }
+        return entities;
+    };
+
+    this.getActorsAt = function( x, y ) {
+        return this.getEntitiesAt( NS_Common.entityType.ACTOR, x, y );
     };
 
     return true;

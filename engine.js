@@ -16,7 +16,7 @@ function _Engine() {
      * Attribute that stores the log method to use in the engine.
      * @type {Function}
      */
-    var __log = NS_UI.log;
+    this.log = NS_UI.log;
 
     /**
      * Attribute that stores the error method to use in the engine.
@@ -36,11 +36,6 @@ function _Engine() {
     var getNextEngId = function() {
         _Engine.ID++;
         return _Engine.ID;
-    };
-
-    this.setLog = function( log ) {
-        __log = log;
-        return __log;
     };
 
     /**

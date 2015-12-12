@@ -241,6 +241,11 @@ function _Common() {
         }
     };
 
+    this.entityType = {
+        ACTOR: "ACTOR",
+        OBJETO: "OBJECTO",
+    };
+
     return true;
 }
 

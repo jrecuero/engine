@@ -47,7 +47,16 @@ function _Actor() {
         this.attributes = undefined;
         this.playable = true;
         this.playableSide = PLAYER;
-        this.cell = undefined;
+        this.objScene = undefined;
+
+        Object.defineProperty( this, 'cell', {
+            get: function() {
+                if ( this.objScene !== undefined ) {
+                    return this.objScene.cell;
+                }
+                return undefined;
+            },
+        });
 
         /**
          * Array of objetos the actor can own.
@@ -158,12 +167,30 @@ function _Actor() {
 
         var __uiData = { widget: undefined, onclick: undefined };
 
+
+        var __createBattle = function( actors ) {
+            var actionBattle = NS_Action.battle( actors );
+            NS_GEngine.addElement( "action", actionBattle ).active = true;
+        };
+
         var __onMove = function( new_pos ) {
-            __actor.cell = __engine.playingScene.getCellAt( new_pos.x, new_pos.y );
-            __engine.playingScene.move.setAt( new_pos.x, new_pos.y, __actor );
+            var scene = __engine.playingScene;
+            var cell = scene.getCellAt( new_pos.x, new_pos.y );
+            scene.replaceObjetoInScene( __actor.objScene, cell );
             __log( "move to " + new_pos.x + ", " + new_pos.y );
-            var check = NS_Action.checkEnemies( new_pos.x, new_pos.y );
-            __engine.addElement( "action", check ).active = true;
+            var actors = scene.getActorsAt( new_pos.x, new_pos.y );
+            if ( actors.length > 0 ) {
+                var actorsNames = [];
+                for ( var i = 0; i < actors.length; i++ ) {
+                    if ( actors[ i ] !== __actor ) {
+                        actorsNames.push( actors[ i ].name );
+                    }
+                }
+                if ( actorsNames.length > 0 ) {
+                    __log("there are actor at new position: " + actorsNames.join(","));
+                    __createBattle( __engine.actors );
+                }
+            }
         };
 
         var onMoveForward = function() {
