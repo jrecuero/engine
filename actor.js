@@ -58,6 +58,14 @@ function _Actor() {
         var __eventos = [];
 
         this.move = {
+            move: function( move_cb, x, y ) {
+                var result = move_cb( x, y );
+                if ( result ) {
+                    var check = NS_Action.checkEnemies( x, y );
+                    __engine.addElement( "action", check ).active = true;
+                }
+                return result;
+            },
             canForward: function() {
                 return __engine.playingScene.move.canForward( __actor.cell.x, __actor.cell.y );
             },
@@ -71,16 +79,16 @@ function _Actor() {
                 return __engine.playingScene.move.canRight( __actor.cell.x, __actor.cell.y );
             },
             forward: function() {
-                return __engine.playingScene.move.forward( __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.forward, __actor.cell.x, __actor.cell.y );
             },
             backward: function() {
-                return __engine.playingScene.move.backward( __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.backward, __actor.cell.x, __actor.cell.y );
             },
             left: function() {
-                return __engine.playingScene.move.left( __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.left, __actor.cell.x, __actor.cell.y );
             },
             right: function() {
-                return __engine.playingScene.move.right( __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.right, __actor.cell.x, __actor.cell.y );
             }
         };
 
@@ -150,10 +158,12 @@ function _Actor() {
 
         var __uiData = { widget: undefined, onclick: undefined };
 
-        var __onMove = function( new_pos) {
-            __actor.cell.update( new_pos );
-            __engine.playingScene.move.setAt( __actor.cell.x, __actor.cell.y, __actor );
-            __log( "move to " + __actor.cell.x + ", " + __actor.cell.y );
+        var __onMove = function( new_pos ) {
+            __actor.cell = __engine.playingScene.getCellAt( new_pos.x, new_pos.y );
+            __engine.playingScene.move.setAt( new_pos.x, new_pos.y, __actor );
+            __log( "move to " + new_pos.x + ", " + new_pos.y );
+            var check = NS_Action.checkEnemies( new_pos.x, new_pos.y );
+            __engine.addElement( "action", check ).active = true;
         };
 
         var onMoveForward = function() {
@@ -163,14 +173,17 @@ function _Actor() {
 
         var onMoveBackward = function() {
             var newPos = __engine.playingScene.move.backward( __actor.cell.x, __actor.cell.y );
+            __onMove( newPos );
         };
 
         var onMoveLeft = function() {
             var newPos = __engine.playingScene.move.left( __actor.cell.x , __actor.cell.y );
+            __onMove( newPos );
         };
 
         var onMoveRight = function() {
             var newPos = __engine.playingScene.move.right( __actor.cell.x, __actor.cell.y );
+            __onMove( newPos );
         };
 
         this.ui = {

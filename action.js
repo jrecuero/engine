@@ -200,6 +200,18 @@ function _Action() {
         return obj;
     };
 
+    this.checkEnemies = function( at_x, at_y) {
+        var obj = __that.createAction();
+        obj.name = "check enemies";
+        obj.type = "scene";
+        obj.execCb.args = [ at_x, at_y ];
+        obj.execCb.cb = function( args ) {
+            __log("Checking Scene at " + args[0] + ", " + args[1] );
+            return true;
+        };
+        return obj;
+    };
+
     return true;
 }
 
