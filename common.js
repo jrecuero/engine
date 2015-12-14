@@ -1,6 +1,3 @@
-var PLAYER = "player";
-var ENEMY = "enemy";
-var NPC = "non playable character";
 
 /**
  * GObject represents any game object in the system.
@@ -241,9 +238,15 @@ function _Common() {
         }
     };
 
-    this.entityType = {
+    this.EntityType = {
         ACTOR: "ACTOR",
         OBJETO: "OBJECTO",
+    };
+
+    this.PlaySide = {
+        PLAYER: "player",
+        ENEMY: "enemy",
+        NPC: "non playable character",
     };
 
     return true;

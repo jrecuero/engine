@@ -16,12 +16,6 @@ function _Actor() {
     var __engine;
 
     /**
-     * Attribute that stores the log method to use in the engine.
-     * @type {Function}
-     */
-    var __log = NS_UI.log;
-
-    /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
      * @return {Boolean} Always true
@@ -29,11 +23,6 @@ function _Actor() {
     this.setEngine = function( engine ) {
         __engine = engine;
         return true;
-    };
-
-    this.setLog = function( log ) {
-        __log = log;
-        return __log;
     };
 
     /**
@@ -46,7 +35,7 @@ function _Actor() {
         var __actor = this;
         this.attributes = undefined;
         this.playable = true;
-        this.playableSide = PLAYER;
+        this.playableSide = NS_Common.PlaySide.PLAYER;
         this.objScene = undefined;
 
         Object.defineProperty( this, 'cell', {
@@ -71,7 +60,7 @@ function _Actor() {
                 var result = move_cb( x, y );
                 if ( result ) {
                     var check = NS_Action.checkEnemies( x, y );
-                    __engine.addElement( "action", check ).active = true;
+                    __engine.addElement( NS_GEngine.Subject.ACTION, check ).active = true;
                 }
                 return result;
             },
@@ -170,14 +159,14 @@ function _Actor() {
 
         var __createBattle = function( actors ) {
             var actionBattle = NS_Action.battle( actors );
-            NS_GEngine.addElement( "action", actionBattle ).active = true;
+            NS_GEngine.addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
         };
 
         var __onMove = function( new_pos ) {
             var scene = __engine.playingScene;
             var cell = scene.getCellAt( new_pos.x, new_pos.y );
             scene.replaceObjetoInScene( __actor.objScene, cell );
-            __log( "move to " + new_pos.x + ", " + new_pos.y );
+            __engine.log( "move to " + new_pos.x + ", " + new_pos.y );
             var actors = scene.getActorsAt( new_pos.x, new_pos.y );
             if ( actors.length > 0 ) {
                 var actorsNames = [];
@@ -187,7 +176,11 @@ function _Actor() {
                     }
                 }
                 if ( actorsNames.length > 0 ) {
-                    __log("there are actor at new position: " + actorsNames.join(","));
+                    __engine.log("there are actor at new position: " + actorsNames.join(","));
+                    __actor.ui.forward.widget.disabled = true;
+                    __actor.ui.backward.widget.disabled = true;
+                    __actor.ui.left.widget.disabled = true;
+                    __actor.ui.right.widget.disabled = true;
                     __createBattle( __engine.actors );
                 }
             }

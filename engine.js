@@ -22,7 +22,9 @@ function _Engine() {
      * Attribute that stores the error method to use in the engine.
      * @type {Function}
      */
-    var __error = NS_UI.error;
+    this.error = NS_UI.error;
+
+    this.debug = NS_UI.debug;
 
     /**
      * Keeps the interval ID returned by setInterval.
@@ -142,6 +144,14 @@ function _Engine() {
         actor.turn = false;
     };
 
+    this.Subject = {
+        ACTOR: "actor",
+        SCENE: "scene",
+        OBJETO: "objeto",
+        EVENTO: "evento",
+        ACTION: "action",
+    };
+
     /**
      * Element table is an object that contains all possible game elements used
      * in the game, stored in different tables.
@@ -225,7 +235,7 @@ function _Engine() {
      * @param  {GObject} element Element instance to be found in the table
      * @return {GObject} Element instance being removed, null else
      */
-    this.delElement = function (subject, element ) {
+    this.delElement = function( subject, element ) {
         var elemTable = this.elementTable[ subject ];
         var result = removeFromTable( element.engId, elemTable.table );
         return result;
@@ -261,7 +271,7 @@ function _Engine() {
 
     var __reloadAction = function( action ) {
         return function() {
-            that.addElement( "action", action ).active = true;
+            that.addElement( NS_GEngine.Subject.ACTION, action ).active = true;
         };
     };
 
@@ -289,17 +299,21 @@ function _Engine() {
      * @return {undefined} Nothing
      */
     this.runActions = function() {
-        var toDelete = [];
-        for ( var i in this.actions ) {
-            var action = this.actions[ i ];
-            if ( action.active ) {
-                __execAction( action );
-                if ( action.remove ) {
-                    toDelete.push( i );
+        var toDelete;
+        do {
+            toDelete = [];
+            var actions = this.actions.slice();
+            for ( var i in actions ) {
+                var action = actions[ i ];
+                if ( action.active ) {
+                    __execAction( action );
+                    if ( action.remove ) {
+                        toDelete.push( i );
+                    }
                 }
             }
-        }
-        NS_Common.deleteWith( this.actions, toDelete );
+            NS_Common.deleteWith( this.actions, toDelete );
+        } while ( toDelete.length > 0 );
     };
 
     /**
@@ -363,10 +377,11 @@ _Engine.ID = 0;
 var NS_GEngine = new _Engine();
 NS_GEngine.init();
 
-NS_Common.setEngine(NS_GEngine);
-NS_Action.setEngine(NS_GEngine);
-NS_Actor.setEngine(NS_GEngine);
-NS_Evento.setEngine(NS_GEngine);
-NS_Objeto.setEngine(NS_GEngine);
-NS_Scene.setEngine(NS_GEngine);
-NS_Battle.setEngine(NS_GEngine);
+NS_Common.setEngine( NS_GEngine );
+NS_Action.setEngine( NS_GEngine );
+NS_Actor.setEngine( NS_GEngine );
+NS_Evento.setEngine( NS_GEngine );
+NS_Objeto.setEngine( NS_GEngine );
+NS_Scene.setEngine( NS_GEngine );
+NS_Battle.setEngine( NS_GEngine );
+NS_BattleHandler.setEngine( NS_GEngine );

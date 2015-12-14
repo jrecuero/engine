@@ -264,7 +264,8 @@ function _Evento() {
         this.runAction = function( page_i ) {
             if ( __canRunPage( page_i ) && __pages[ page_i ].actions.length ) {
                 var action = __pages[ page_i ].actions.shift();
-                NS_Evento.engine.addElement( "action", action ).active = true;
+                NS_Evento.engine.addElement( NS_GEngine.Subject.ACTION,
+                                             action ).active = true;
                 setTimeout( that.runAction, 1 );
             }
             return true;

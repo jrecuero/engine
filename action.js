@@ -25,6 +25,16 @@ function _Action() {
         return true;
     };
 
+    this.Type = {
+        NONE: "none action",
+        ACTOR: "actor action",
+        BATTLE: "battle action",
+        OBJETO: "objeto action",
+        SCENE: "scene action",
+        MOVE: "movement action",
+        ACTION: "interaction action",
+    };
+
     /**
      * Action class for any action used in the game.
      * @class
@@ -82,7 +92,7 @@ _Action.prototype.move = function( steps, log_cb ) {
     log_cb = log_cb ? log_cb : NS_GEngine.log;
     var obj = NS_Action.createAction();
     obj.name = "move";
-    obj.type = "move";
+    obj.NStype = _Action.Type.MOVE;
     obj.execCb.args = [ steps ];
     obj.execCb.cb = function( args ) {
             log_cb( "you moved " + args[ 0 ] );
@@ -100,7 +110,7 @@ _Action.prototype.use = function( use_obj, log_cb ) {
     log_cb = log_cb ? log_cb : NS_GEngine.log;
     var obj = NS_Action.createAction();
     obj.name = "use";
-    obj.type = "use";
+    obj.type = NS_Action.Type.ACTION;
     obj.execCb.args = [ use_obj ];
     obj.execCb.cb = function( args ) {
         log_cb( "you used " + args[ 0 ] );
@@ -122,7 +132,7 @@ _Action.prototype.take = function( take_obj, log_cb ) {
     log_cb = log_cb ? log_cb : NS_GEngine.log;
     var obj = NS_Action.createAction();
     obj.name = "take";
-    obj.type = "take";
+    obj.type = NS_Action.Type.ACTION;
     obj.execCb.args = [ take_obj ];
     obj.execCb.cb = function( args ) {
         log_cb( "you took " + args[ 0 ] );
@@ -140,7 +150,7 @@ _Action.prototype.drop = function( drop_obj, log_cb ) {
     log_cb = log_cb ? log_cb : NS_GEngine.log;
     var obj = NS_Action.createAction();
     obj.name = "drop";
-    obj.type = "drop";
+    obj.type = NS_Action.Type.ACTION;
     obj.execCb.args = [ drop_obj ];
     obj.execCb.cb = function( args ) {
         log_cb( "you drop " + args[ 0 ] );
@@ -156,9 +166,9 @@ _Action.prototype.drop = function( drop_obj, log_cb ) {
 _Action.prototype.attack = function() {
     var obj = NS_Action.createAction();
     obj.name = "attack";
-    obj.type = "attack";
+    obj.type = NS_Action.Type.BATTLE;
     obj.execCb.cb = function( args ) {
-        NS_Battle.battleAttack();
+        NS_BattleHandler.battleAttack();
         return true;
     };
     return obj;
@@ -171,10 +181,10 @@ _Action.prototype.attack = function() {
 _Action.prototype.battle = function( actors ) {
     var obj = NS_Action.createAction();
     obj.name = "battle";
-    obj.type = "battle";
+    obj.type = NS_Action.Type.BATTLE;
     obj.execCb.args = actors;
     obj.execCb.cb = function( args ) {
-        return NS_Battle.initBattle( args );
+        return NS_BattleHandler.init( args );
     };
     return obj;
 };
@@ -187,7 +197,7 @@ _Action.prototype.defense = function( log_cb ) {
     log_cb = log_cb ? log_cb : this.log;
     var obj = NS_Action.createAction();
     obj.name = "defense";
-    obj.type = "defense";
+    obj.type = NS_Action.Type.BATTLE;
     obj.execCb.cb = function( args ) {
         log_cb( "you defend" );
         return true;
@@ -198,7 +208,7 @@ _Action.prototype.defense = function( log_cb ) {
 _Action.prototype.checkEnemies = function( at_x, at_y) {
     var obj = NS_Action.createAction();
     obj.name = "check enemies";
-    obj.type = "scene";
+    obj.type = NS_Action.Type.SCENE;
     obj.execCb.args = [ at_x, at_y ];
     obj.execCb.cb = function( args ) {
         NS_GEngine.log("Checking Scene at " + args[0] + ", " + args[1] );

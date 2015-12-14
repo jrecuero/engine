@@ -1,21 +1,9 @@
 function _Battle() {
     /**
      * Keep a copy for the object instance.
-     * @type {_Engine}
+     * @type {_Battle}
      */
     var __that = this;
-
-    /**
-     * Attribute that stores the log method to use in the engine.
-     * @type {Function}
-     */
-    var __log = NS_UI.log;
-
-    /**
-     * Attribute that stores the error method to use in the engine.
-     * @type {Function}
-     */
-    var __error = NS_UI.error;
 
     /**
      * Game engine instance
@@ -26,16 +14,11 @@ function _Battle() {
     /**
      * Set game engine for the attribute variable
      * @param {_Engine} engine Game engine instance
-     * @return {Boolean} Always true
+     * @return {_Engine} Engine instance
      */
     this.setEngine = function( engine ) {
         __engine = engine;
-        return true;
-    };
-
-    this.setLog = function( log ) {
-        __log = log;
-        return __log;
+        return engine;
     };
 
     /**
@@ -128,7 +111,7 @@ function _Battle() {
          * @return {Array} Array with enemy actors
          */
         enemyActors: function( actors ) {
-            return this.getActors( actors, ENEMY );
+            return this.getActors( actors, NS_Common.PlaySide.ENEMY );
         },
         /**
          * Returns Array with player actors.
@@ -136,7 +119,7 @@ function _Battle() {
          * @return {Array} Array with player actors
          */
         playerActors: function( actors ) {
-            return this.getActors( actors, PLAYER );
+            return this.getActors( actors, NS_Common.PlaySide.PLAYER );
         }
     };
 
@@ -197,7 +180,7 @@ function _Battle() {
      * @return {undefined} Nothing
      */
     this.setStateByBattleTurnPlayableSide = function() {
-        if ( this.battle.turn === PLAYER ) {
+        if ( this.battle.turn === NS_Common.PlaySide.PLAYER ) {
             this.state.set( this.state.IN_BATTLE_WAITING_INPUT );
         } else {
             this.state.set( this.state.IN_BATTLE_WAITING_AI );
@@ -211,7 +194,7 @@ function _Battle() {
     this.initBattle = function( actors ) {
         this.battle.actors = [];
         if ( actors.length <= 1 ) {
-            __error( "Not enough actors for battle: " + actors.length );
+            __engine.error( "Not enough actors for battle: " + actors.length );
             return false;
         }
         for ( var i in actors ) {
@@ -242,7 +225,7 @@ function _Battle() {
     this.logBattleRunResultTurn = function() {
         var originator = this.battle.originator;
         var target = this.battle.target;
-        __log( originator.name + " attack " + target.name +
+        __engine.log( originator.name + " attack " + target.name +
                   "[" + target.attributes.life + "]" );
     };
 
@@ -264,7 +247,7 @@ function _Battle() {
             this.customAvailableTarget();
         } else {
             var actor = this.battle.originator;
-            __log( actor.name + " won the battle" );
+            __engine.log( actor.name + " won the battle" );
             this.state.set( this.state.IN_BATTLE_END );
         }
     };

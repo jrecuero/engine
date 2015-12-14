@@ -111,7 +111,7 @@ _Scene.prototype.Cell = function( x, y, image ) {
     this.getEntityFromContainer = function ( entity_type ) {
         var result = [];
         for ( var i = 0; i < __container.length; i++ ) {
-            if ( __container[ i ].entityType === entity_type ) {
+            if ( __container[ i ].EntityType === entity_type ) {
                 result.push( __container[ i ] );
             }
         }
@@ -242,7 +242,7 @@ _Scene.prototype.ObjetoScene = function( entity, entity_type ) {
         }
     } );
 
-    Object.defineProperty( this, "entityType", {
+    Object.defineProperty( this, "EntityType", {
         get: function() {
             return __entityType;
         },
@@ -467,7 +467,7 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
     };
 
     this.getActorsAt = function( x, y ) {
-        return this.getEntitiesAt( NS_Common.entityType.ACTOR, x, y );
+        return this.getEntitiesAt( NS_Common.EntityType.ACTOR, x, y );
     };
 
     return true;
