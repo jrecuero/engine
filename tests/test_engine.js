@@ -2,6 +2,10 @@
 // ----- TEST METHODS -----
 //
 
+/**
+ * Test Battle Handler Module.
+ * - Battle takes only one turn.
+ */
 function test_battle_handler() {
     var that = this;
     var jose;
@@ -20,14 +24,14 @@ function test_battle_handler() {
         jose.attributes = new Attrs( 100, 50, 5 );
 
         goblin = new NS_Actor.Actor( [ "goblin" ] );
-        goblin.attributes = new Attrs( 80, 8, 1);
+        goblin.attributes = new Attrs( 80, 8, 1 );
         goblin.playableSide = NS_Common.PlaySide.ENEMY;
 
         var actionCreateActors = NS_Action.createAction();
         actionCreateActors.name = "create actors";
         actionCreateActors.type = NS_Action.Type.ACTOR;
         actionCreateActors.execCb.cb = function( args ) {
-            NS_GEngine.addElements( "actor", [ jose, goblin ] );
+            NS_GEngine.addElements( NS_GEngine.Subject.ACTOR, [ jose, goblin ] );
         };
         NS_GEngine.addElement( NS_GEngine.Subject.ACTION,
                                actionCreateActors ).active = true;
@@ -40,7 +44,7 @@ function test_battle_handler() {
     };
 
     this.on_action = function() {
-        var actionBattle = NS_Action.battle( [ jose, goblin ]);
+        var actionBattle = NS_Action.battle( [ jose, goblin ], 1 );
         NS_GEngine.addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
     };
 
@@ -99,8 +103,126 @@ function test_battle_handler() {
     NS_GEngine.start();
 }
 
-var testBattleHandler = new test_battle_handler();
+// Var testBattleHandler = new test_battle_handler();
 
+/**
+ * Test Battle Scenario with ONE player and NBR of enemies.
+ * - Battle takes as many turns as required until one playable side is left.
+ * - Battle starts when player meets enemies on the scenario.
+ * @param  {Integer} nbr Number of enemies
+ */
+function test_event_n_goblin_battle( nbr ) {
+    var that = this;
+    var mplayer;
+    var goblins = new Array( nbr );
+    var actors;
+
+    var mainScene;
+
+    var actionButton;
+    var targetSelect;
+    var logBox;
+
+    var testLog = function( message ) {
+        NS_UI.textarea.append( logBox, message );
+    };
+
+    var createMainScene = function() {
+        var scene = new NS_Scene.Scene( "main-scene", 5, 5 );
+        NS_GEngine.addElement( NS_GEngine.Subject.SCENE, scene );
+    };
+
+    var createActors = function() {
+        mplayer = new NS_Actor.Player( [ "main player" ] );
+        mplayer.attributes = new Attrs( 100, 50, 5 );
+
+        actors = [ mplayer ];
+
+        for ( var i = 0; i < nbr; i++ ) {
+            goblins[ i ] = new NS_Actor.Actor( [ "goblin" + i ] );
+            goblins[ i ].attributes = new Attrs( 80, 8, 1 );
+            goblins[ i ].playableSide = NS_Common.PlaySide.ENEMY;
+            actors.push( goblins[ i ] );
+        }
+        NS_GEngine.addElement( NS_GEngine.Subject.ACTOR, actors );
+    };
+
+    var createButtons = function() {
+        mplayer.ui.action.onclick = that.on_action;
+        mplayer.createWidgets();
+
+        actionButton = mplayer.ui.action.widget;
+        targetSelect = NS_UI.select.create();
+        logBox = NS_UI.textarea.create( 20, 40 );
+    };
+
+    this.on_action = function() {
+        var actionBattle = NS_Action.battle( actors );
+        NS_GEngine.addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
+    };
+
+    window.onload = function() {
+        createActors();
+        createButtons();
+    };
+
+    var removeAllTargets = function() {
+        for ( var i in targetSelect ) {
+            targetSelect.remove( 0 );
+        }
+    };
+
+    NS_BattleHandler.customUserSetUp = function() {
+        removeAllTargets();
+        var enemies = NS_BattleHandler.getEnemyActors();
+        for ( var i in enemies ) {
+            var enemy = enemies[ i ];
+            NS_UI.select.append( targetSelect, enemy.name, enemy );
+        }
+    };
+
+    NS_BattleHandler.customSetUserAction = function() {
+        return ( new NS_Action.attack() );
+    };
+
+    NS_BattleHandler.customSetUserTarget = function() {
+        var index = targetSelect.selectedIndex;
+        return targetSelect[ index ].handler;
+    };
+
+    NS_BattleHandler.customAiSetUp = function() {
+        removeAllTargets();
+        var players = NS_BattleHandler.getPlayerActors();
+        for ( var i in players ) {
+            var player = players[ i ];
+            NS_UI.select.append( targetSelect, player.name, player );
+        }
+    };
+
+    NS_BattleHandler.customSetAiAction = function() {
+        return ( new NS_Action.attack() );
+    };
+
+    NS_BattleHandler.customSetAiTarget = function() {
+        var index = targetSelect.selectedIndex;
+        return targetSelect[ index ].handler;
+    };
+
+    NS_BattleHandler.customBattleTearDown = function() {
+        removeAllTargets();
+    };
+
+    // Start Engine.
+    createMainScene();
+    NS_GEngine.start();
+    NS_GEngine.log = testLog;
+}
+
+var testGoblinsBattle = new test_event_n_goblin_battle( 3 );
+
+/**
+ * Test Battle Sceneario with ONE player and TWO enemies.
+ */
 function test_event_two_goblin_battle() {
     var that = this;
     var jose;
@@ -123,7 +245,8 @@ function test_event_two_goblin_battle() {
     var createButtons = function() {
 
         jose = new NS_Actor.Player( [ "jose" ] );
-        // jose.ui.forward.onclick = that.on_move;
+
+        // Jose.ui.forward.onclick = that.on_move;
         jose.ui.action.onclick = that.on_action;
         jose.ui.use.onclick = that.on_use;
         jose.ui.take.onclick = that.on_take;
@@ -144,7 +267,7 @@ function test_event_two_goblin_battle() {
 
     var createMainScene = function() {
         mainScene = new NS_Scene.Scene( "main-scene", 5, 5 );
-        var keyObj = new NS_Objeto.Objeto( [ 'key'] );
+        var keyObj = new NS_Objeto.Objeto( [ "key" ] );
         mainScene.createObjetoInScene( keyObj,
                                        mainScene.getCellAt( 1, 1 ),
                                        NS_Common.EntityType.OBJETO );
@@ -222,7 +345,8 @@ function test_event_two_goblin_battle() {
             userSteps = 0;
             actionB.disabled = false;
             moveB.disabled = true;
-            // createActors();
+
+            // CreateActors();
             createBattle();
         }
     };
@@ -298,7 +422,8 @@ function test_event_two_goblin_battle() {
     window.onload = function() {
         createButtons();
         createActors();
-        // actionB.disabled = true;
+
+        // ActionB.disabled = true;
     };
 
     createMainScene();
@@ -306,4 +431,4 @@ function test_event_two_goblin_battle() {
     NS_GEngine.log = testLog;
 }
 
-// var twoGoblinBattle = new test_event_two_goblin_battle();
+// Var twoGoblinBattle = new test_event_two_goblin_battle();

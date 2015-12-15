@@ -46,11 +46,19 @@ function _UserItf() {
     };
 
     this.button = function( name, handler, group ) {
+        var panel;
+        if ( group !== undefined ) {
+            panel = document.getElementById( group );
+        }
         var button = document.createElement( "input" );
         button.type = "button";
         button.value = name;
         button.onclick = handler;
-        document.body.appendChild( button );
+        if ( panel !== undefined ) {
+            panel.appendChild( button );
+        } else {
+            document.body.appendChild( button );
+        }
         return button;
     };
 

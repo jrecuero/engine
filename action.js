@@ -178,13 +178,13 @@ _Action.prototype.attack = function() {
  * Start Battle Action class for battle action.
  * @return {Boolean} Always true
  */
-_Action.prototype.battle = function( actors ) {
+_Action.prototype.battle = function( actors, turn_limit ) {
     var obj = NS_Action.createAction();
     obj.name = "battle";
     obj.type = NS_Action.Type.BATTLE;
-    obj.execCb.args = actors;
+    obj.execCb.args = [ actors, turn_limit ];
     obj.execCb.cb = function( args ) {
-        return NS_BattleHandler.init( args );
+        return NS_BattleHandler.init( args[0], args[1] );
     };
     return obj;
 };

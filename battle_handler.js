@@ -119,6 +119,8 @@ function _BattleHandler() {
 
     this.turnSide = undefined;
 
+    this.turnLimit = undefined;
+
     this.getActorsForSide = function( playable_side, actors ) {
         actors = actors !== undefined ? actors : this.actors;
         var result = [];
@@ -143,7 +145,8 @@ function _BattleHandler() {
         this.originator.damage( this.target );
     };
 
-    this.init = function( actors ) {
+    this.init = function( actors, turn_limit ) {
+        this.turnLimit = turn_limit;
         if ( actors.length <= 1 ) {
             __engine.error( "Not enough actors for battle: " + actors.length );
             return false;
@@ -155,17 +158,28 @@ function _BattleHandler() {
     };
 
     this.findNextOriginator = function() {
-        var actor = this.actors.shift();
-        actor.turn = true;
-        this.originator = actor;
+        if ( this.actors.length > 1 ) {
+            var actor = this.actors.shift();
+            actor.turn = true;
+            this.originator = actor;
+            return true;
+        } else {
+            this.originator = undefined;
+            return false
+        }
     };
 
-    this.nextStateByBattleTurnPlayableSide = function( playable_side ) {
-        this.turnSide = playable_side !== undefined ? playable_side : this.turnSide;
-        if ( this.turnSide === NS_Common.PlaySide.PLAYER ) {
-            this.State.set( this.State.IN_USER_SET_UP );
+    this.nextStateByBattleTurnPlayableSide = function() {
+        if ( this.originator === undefined ) {
+            this.turnLimit = 0;
+            this.State.set( this.State.IN_END );
         } else {
-            this.State.set( this.State.IN_AI_SET_UP );
+            this.turnSide = this.originator.playableSide;
+            if ( this.turnSide === NS_Common.PlaySide.PLAYER ) {
+                this.State.set( this.State.IN_USER_SET_UP );
+            } else {
+                this.State.set( this.State.IN_AI_SET_UP );
+            }
         }
     };
 
@@ -195,18 +209,35 @@ function _BattleHandler() {
     };
 
     this.runOriginatorActionResult = function() {
+        this.logBattleActionResult();
         var toDelete = this.actors.filter( function( x ) {
             return !x.isAlive();
         } );
         NS_Common.deleteWith( this.actors, toDelete );
     };
 
+    this.logBattleActionResult = function() {
+        __engine.log( "[" + this.originator.attributes.life + "] " +
+                      this.originator.name + " attacked " +
+                      "[" + this.target.attributes.life + "] " +
+                      this.target.name );
+    };
+
     this.nextStateByBattleActorQueue = function() {
         if ( this.actors.length === 0 ) {
             this.State.set( this.State.IN_TEAR_DOWN );
         } else {
-            this.State.next();
+            this.State.set( this.State.IN_SET_UP );
         }
+    };
+
+    this.pushOriginatorBack = function() {
+        this.originator.turn = false;
+        this.actors.push( this.originator );
+    };
+
+    this.userTearDown = function() {
+        this.pushOriginatorBack();
     };
 
     this.setAiSetUp = function() {
@@ -228,18 +259,33 @@ function _BattleHandler() {
 
     this.customSetAiTarget = undefined;
 
+    this.aiTearDown = function() {
+        this.pushOriginatorBack();
+    };
+
     this.tearDown = function() {
         this.customBattleTearDown();
     };
 
     this.customBattleTearDown = undefined;
 
+    this.battleEnd = function() {
+        if ( ( this.turnLimit !== undefined ) && ( this.turnLimit > 0 ) ) {
+            this.turnLimit--;
+        }
+        if ( this.turnLimit === 0 ) {
+            this.State.next();
+        } else {
+            this.State.set( this.State.IN_SET_UP );
+        }
+    };
+
     this.stateMachine = function() {
         switch( this.State.get() ) {
             case this.State.IN_SET_UP:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
                 this.findNextOriginator();
-                this.nextStateByBattleTurnPlayableSide( this.originator.playableSide );
+                this.nextStateByBattleTurnPlayableSide( );
                 break;
             case this.State.IN_USER_SET_UP:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
@@ -269,11 +315,12 @@ function _BattleHandler() {
                 break;
             case this.State.IN_USER_TEAR_DOWN:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
+                this.userTearDown();
                 this.nextStateByBattleActorQueue();
                 break;
             case this.State.IN_AI_SET_UP:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
-                this.setUserSetUp();
+                this.setAiSetUp();
                 this.State.next();
                 break;
             case this.State.IN_AI_WAIT_ACTION:
@@ -298,6 +345,7 @@ function _BattleHandler() {
                 break;
             case this.State.IN_AI_TEAR_DOWN:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
+                this.aiTearDown();
                 this.nextStateByBattleActorQueue();
                 break;
             case this.State.IN_TEAR_DOWN:
@@ -307,7 +355,7 @@ function _BattleHandler() {
                 break;
             case this.State.IN_END:
                 __engine.debug( "BattleHandler state: " + this.State.get() );
-                this.State.next();
+                this.battleEnd();
                 break;
             default:
                 __engine.debug( "BattleHandler state: " + this.State.get() );

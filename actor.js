@@ -220,15 +220,15 @@ function _Actor() {
         };
 
         this.createWidgets = function() {
-            this.ui.forward.widget = NS_UI.button( "forward", this.ui.forward.onclick );
-            this.ui.backward.widget = NS_UI.button( "backward", this.ui.backward.onclick );
-            this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick );
-            this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick );
-            this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick );
-            this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick );
-            this.ui.look.widget = NS_UI.button( "look", this.ui.look.onclick );
-            this.ui.take.widget = NS_UI.button( "take", this.ui.take.onclick );
-            this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick );
+            this.ui.forward.widget = NS_UI.button( "forward", this.ui.forward.onclick, "panel-move" );
+            this.ui.backward.widget = NS_UI.button( "backward", this.ui.backward.onclick, "panel-move" );
+            this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick, "panel-move" );
+            this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick, "panel-move" );
+            this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick, "panel-battle" );
+            this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick, "panel-action" );
+            this.ui.look.widget = NS_UI.button( "look", this.ui.look.onclick, "panel-action" );
+            this.ui.take.widget = NS_UI.button( "take", this.ui.take.onclick, "panel-action" );
+            this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick, "panel-action" );
         };
     };
     inheritKlass( __that.Actor, this.Player );
