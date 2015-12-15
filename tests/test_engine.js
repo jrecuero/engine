@@ -164,6 +164,7 @@ function test_event_n_goblin_battle( nbr ) {
     window.onload = function() {
         createActors();
         createButtons();
+        mplayer.ui.disablePanels.call( mplayer, [ "move", "action" ] );
     };
 
     var removeAllTargets = function() {

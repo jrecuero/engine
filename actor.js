@@ -65,28 +65,40 @@ function _Actor() {
                 return result;
             },
             canForward: function() {
-                return __engine.playingScene.move.canForward( __actor.cell.x, __actor.cell.y );
+                return __engine.playingScene.move.canForward( __actor.cell.x,
+                                                              __actor.cell.y );
             },
             canBackward: function() {
-                return __engine.playingScene.move.canBackward( __actor.cell.x, __actor.cell.y );
+                return __engine.playingScene.move.canBackward( __actor.cell.x,
+                                                               __actor.cell.y );
             },
             canLeft: function() {
-                return __engine.playingScene.move.canLeft( __actor.cell.x, __actor.cell.y );
+                return __engine.playingScene.move.canLeft( __actor.cell.x,
+                                                           __actor.cell.y );
             },
             canRight: function() {
-                return __engine.playingScene.move.canRight( __actor.cell.x, __actor.cell.y );
+                return __engine.playingScene.move.canRight( __actor.cell.x,
+                                                            __actor.cell.y );
             },
             forward: function() {
-                return this.move( __engine.playingScene.move.forward, __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.forward,
+                                  __actor.cell.x,
+                                  __actor.cell.y );
             },
             backward: function() {
-                return this.move( __engine.playingScene.move.backward, __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.backward,
+                                  __actor.cell.x,
+                                  __actor.cell.y );
             },
             left: function() {
-                return this.move( __engine.playingScene.move.left, __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.left,
+                                  __actor.cell.x,
+                                  __actor.cell.y );
             },
             right: function() {
-                return this.move( __engine.playingScene.move.right, __actor.cell.x, __actor.cell.y );
+                return this.move( __engine.playingScene.move.right,
+                                  __actor.cell.x,
+                                  __actor.cell.y );
             }
         };
 
@@ -145,95 +157,138 @@ function _Actor() {
     };
     inheritKlass( GObject, this.Actor );
 
-    /**
-     * Player class
-     * @param {Array} args Arguments required for the constructor
-     * @return {Boolean} Always true
-     */
-    this.Player = function( args ) {
-        __that.Actor.apply( this, [ args ] );
-        var __actor = this;
-
-        var __uiData = { widget: undefined, onclick: undefined };
-
-
-        var __createBattle = function( actors ) {
-            var actionBattle = NS_Action.battle( actors );
-            NS_GEngine.addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
-        };
-
-        var __onMove = function( new_pos ) {
-            var scene = __engine.playingScene;
-            var cell = scene.getCellAt( new_pos.x, new_pos.y );
-            scene.replaceObjetoInScene( __actor.objScene, cell );
-            __engine.log( "move to " + new_pos.x + ", " + new_pos.y );
-            var actors = scene.getActorsAt( new_pos.x, new_pos.y );
-            if ( actors.length > 0 ) {
-                var actorsNames = [];
-                for ( var i = 0; i < actors.length; i++ ) {
-                    if ( actors[ i ] !== __actor ) {
-                        actorsNames.push( actors[ i ].name );
-                    }
-                }
-                if ( actorsNames.length > 0 ) {
-                    __engine.log("there are actor at new position: " + actorsNames.join(","));
-                    __actor.ui.forward.widget.disabled = true;
-                    __actor.ui.backward.widget.disabled = true;
-                    __actor.ui.left.widget.disabled = true;
-                    __actor.ui.right.widget.disabled = true;
-                    __createBattle( __engine.actors );
-                }
-            }
-        };
-
-        var onMoveForward = function() {
-            var newPos = __engine.playingScene.move.forward( __actor.cell.x, __actor.cell.y );
-            __onMove( newPos );
-        };
-
-        var onMoveBackward = function() {
-            var newPos = __engine.playingScene.move.backward( __actor.cell.x, __actor.cell.y );
-            __onMove( newPos );
-        };
-
-        var onMoveLeft = function() {
-            var newPos = __engine.playingScene.move.left( __actor.cell.x , __actor.cell.y );
-            __onMove( newPos );
-        };
-
-        var onMoveRight = function() {
-            var newPos = __engine.playingScene.move.right( __actor.cell.x, __actor.cell.y );
-            __onMove( newPos );
-        };
-
-        this.ui = {
-            move: Object.create( __uiData ),
-            forward: { widget: undefined, onclick: onMoveForward },
-            backward: { widget: undefined, onclick: onMoveBackward },
-            left: { widget: undefined, onclick: onMoveLeft },
-            right: { widget: undefined, onclick: onMoveRight },
-            action: Object.create( __uiData ),
-            use: Object.create( __uiData ),
-            look: Object.create( __uiData ),
-            take: Object.create( __uiData ),
-            drop: Object.create( __uiData )
-        };
-
-        this.createWidgets = function() {
-            this.ui.forward.widget = NS_UI.button( "forward", this.ui.forward.onclick, "panel-move" );
-            this.ui.backward.widget = NS_UI.button( "backward", this.ui.backward.onclick, "panel-move" );
-            this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick, "panel-move" );
-            this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick, "panel-move" );
-            this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick, "panel-battle" );
-            this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick, "panel-action" );
-            this.ui.look.widget = NS_UI.button( "look", this.ui.look.onclick, "panel-action" );
-            this.ui.take.widget = NS_UI.button( "take", this.ui.take.onclick, "panel-action" );
-            this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick, "panel-action" );
-        };
-    };
-    inheritKlass( __that.Actor, this.Player );
-
     return true;
 }
 
 var NS_Actor = new _Actor();
+
+/**
+ * Player class
+ * @param {Array} args Arguments required for the constructor
+ * @return {Boolean} Always true
+ */
+_Actor.prototype.Player = function( args ) {
+    NS_Actor.Actor.apply( this, [ args ] );
+
+    var __that = this;
+
+    var __uiData = { widget: undefined, onclick: undefined };
+
+
+    var __createBattle = function( actors ) {
+        var actionBattle = NS_Action.battle( actors );
+        NS_GEngine.addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
+    };
+
+    var __onMove = function( new_pos ) {
+        var scene = __engine.playingScene;
+        var cell = scene.getCellAt( new_pos.x, new_pos.y );
+        scene.replaceObjetoInScene( __that.objScene, cell );
+        __engine.log( "move to " + new_pos.x + ", " + new_pos.y );
+        var actors = scene.getActorsAt( new_pos.x, new_pos.y );
+        if ( actors.length > 0 ) {
+            var actorsNames = [];
+            for ( var i = 0; i < actors.length; i++ ) {
+                if ( actors[ i ] !== __that ) {
+                    actorsNames.push( actors[ i ].name );
+                }
+            }
+            if ( actorsNames.length > 0 ) {
+                __engine.log("there are actor at new position: " + actorsNames.join(","));
+                __that.ui.forward.widget.disabled = true;
+                __that.ui.backward.widget.disabled = true;
+                __that.ui.left.widget.disabled = true;
+                __that.ui.right.widget.disabled = true;
+                __createBattle( __engine.actors );
+            }
+        }
+    };
+
+    var onMoveForward = function() {
+        var newPos = __engine.playingScene.move.forward( __that.cell.x,
+                                                          __that.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveBackward = function() {
+        var newPos = __engine.playingScene.move.backward( __that.cell.x,
+                                                          __that.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveLeft = function() {
+        var newPos = __engine.playingScene.move.left( __that.cell.x ,
+                                                      __that.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveRight = function() {
+        var newPos = __engine.playingScene.move.right( __that.cell.x,
+                                                       __that.cell.y );
+        __onMove( newPos );
+    };
+
+    this.ui = {
+        move: Object.create( __uiData ),
+        forward: { widget: undefined, onclick: onMoveForward },
+        backward: { widget: undefined, onclick: onMoveBackward },
+        left: { widget: undefined, onclick: onMoveLeft },
+        right: { widget: undefined, onclick: onMoveRight },
+        action: Object.create( __uiData ),
+        use: Object.create( __uiData ),
+        look: Object.create( __uiData ),
+        take: Object.create( __uiData ),
+        drop: Object.create( __uiData ),
+        panels: {},
+    };
+
+    this.setPanelTo = function( panel_name, enabled ) {
+        this.ui.panels[ panel_name ].enable = enabled;
+        for ( var i in this.ui.panels[ panel_name ].widgets ) {
+            this.ui.panels[ panel_name ].widgets[ i ].widget.disabled = !enabled;
+        }
+    };
+
+    this.ui.enablePanels = function( panels ) {
+        panels = panels === undefined ? [ "move", "battle", "action"] : panels;
+        for ( var i in panels ) {
+            this.setPanelTo( panels[ i ], true );
+        }
+    };
+
+    this.ui.disablePanels = function( panels ) {
+        panels = panels === undefined ? [ "move", "battle", "action"] : panels;
+        for ( var i in panels ) {
+            this.setPanelTo( panels[ i ], false );
+        }
+    };
+
+    this.createWidgets = function() {
+        this.ui.forward.widget = NS_UI.button( "forward", this.ui.forward.onclick, "move" );
+        this.ui.backward.widget = NS_UI.button( "backward", this.ui.backward.onclick, "move" );
+        this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick, "move" );
+        this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick, "move" );
+        this.ui.panels.move = { enable: true,
+                                widgets: [ __that.ui.forward ,
+                                           __that.ui.backward,
+                                           __that.ui.left,
+                                           __that.ui.right ] };
+
+        this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick, "battle" );
+        this.ui.panels.battle = { enable: true,
+                                  widgets: [ __that.ui.action ] };
+
+        this.ui.panels.action = true;
+        this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick, "action" );
+        this.ui.look.widget = NS_UI.button( "look", this.ui.look.onclick, "action" );
+        this.ui.take.widget = NS_UI.button( "take", this.ui.take.onclick, "action" );
+        this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick, "action" );
+        this.ui.panels.action = { enable: true,
+                                  widgets: [ __that.ui.use ,
+                                             __that.ui.look,
+                                             __that.ui.take,
+                                             __that.ui.drop ] };
+
+    };
+};
+inheritKlass( NS_Actor.Actor, _Actor.prototype.Player );
