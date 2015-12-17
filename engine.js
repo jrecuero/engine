@@ -135,6 +135,10 @@ function _Engine() {
      */
     this.actions = [];
 
+    this.actionCallbacks = [];
+
+    this.sceneHandler = undefined;
+
     /**
      * Custom Actor creation method for the engine
      * @param  {Actor} actor Actor being created
@@ -149,7 +153,7 @@ function _Engine() {
         SCENE: "scene",
         OBJETO: "objeto",
         EVENTO: "evento",
-        ACTION: "action",
+        ACTION: "action"
     };
 
     /**
@@ -269,9 +273,48 @@ function _Engine() {
         return result;
     };
 
+    this.registerActionCallback = function( owner, type, cb, cb_args ) {
+        var actionCbEntry = {
+            id: NS_Common.nextId(),
+            type: type,
+            owner: owner,
+            execCb: { cb: cb, args: cb_args }
+        };
+        this.actionCallbacks.push( actionCbEntry );
+        return actionCbEntry.id;
+    };
+
+    this.unregisterActionCallback = function( id ) {
+        var index;
+        for ( var i in this.actionCallbacks ) {
+            if ( this.actionCallbacks[ i ].id === id ) {
+                index = i;
+                break;
+            }
+        }
+        if ( index !== undefined ) {
+            this.actionCallbacks.splice( index, 1 );
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    var __callActionCallbacks = function( action ) {
+        for ( var i in __that.actionCallbacks ) {
+            var entry = __that.actionCallbacks[ i ];
+            if ( ( ( entry.owner === action.owner ) &&
+                   ( entry.type === action.type ) ) ||
+                 ( ( entry.owner === undefiend ) &&
+                   ( entry.type === action.type ) ) ) {
+                entry.execCb.cb( action, entry.execCb.args );
+            }
+        }
+    };
+
     var __reloadAction = function( action ) {
         return function() {
-            that.addElement( NS_GEngine.Subject.ACTION, action ).active = true;
+            __that.addElement( NS_GEngine.Subject.ACTION, action ).active = true;
         };
     };
 
@@ -307,6 +350,7 @@ function _Engine() {
                 var action = actions[ i ];
                 if ( action.active ) {
                     __execAction( action );
+                    __callActionCallbacks( action );
                     if ( action.remove ) {
                         toDelete.push( i );
                     }
@@ -377,11 +421,6 @@ _Engine.ID = 0;
 var NS_GEngine = new _Engine();
 NS_GEngine.init();
 
-NS_Common.setEngine( NS_GEngine );
-NS_Action.setEngine( NS_GEngine );
-NS_Actor.setEngine( NS_GEngine );
-NS_Evento.setEngine( NS_GEngine );
-NS_Objeto.setEngine( NS_GEngine );
-NS_Scene.setEngine( NS_GEngine );
-NS_Battle.setEngine( NS_GEngine );
-NS_BattleHandler.setEngine( NS_GEngine );
+function getEngine() {
+    return NS_GEngine;
+}

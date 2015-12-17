@@ -5,15 +5,10 @@
  */
 function GObject() {
     this.name = arguments[ 0 ] ? arguments[ 0 ] : "object";
-    this.getNextObjId = function() {
-        GObject.ID++;
-        return GObject.ID;
-    };
-    this.objId = this.getNextObjId();
+    this.objId = NS_Common.nextId();
     this.log = undefined;
     return true;
 }
-GObject.ID = 0;
 
 /**
  * InheritKlass provides inherited functionality.
@@ -158,22 +153,6 @@ function Attrs() {
  */
 function _Common() {
     /**
-     * Game engine instance
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {Boolean} Always true
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return true;
-    };
-
-    /**
      * Remove value from array.
      * @param {Array} array Array where value should be removed
      * @param {Object} value Value to be removed from the array
@@ -240,13 +219,32 @@ function _Common() {
 
     this.EntityType = {
         ACTOR: "ACTOR",
-        OBJETO: "OBJECTO",
+        OBJETO: "OBJETO",
     };
 
     this.PlaySide = {
         PLAYER: "player",
         ENEMY: "enemy",
         NPC: "non playable character",
+    };
+
+    this.Flag = {
+        ACTION: 'isAction',
+        MOVE: 'isMove',
+        USE: "isUse",
+        TAKE: "isTake",
+        DROP: "isDrop",
+        HIDEN: "isHiden",
+        SOLID: "isSolid",
+        TRIGGER: 'isTrigger',
+        LOOK: 'isLook',
+    };
+
+    var __uniqueId = 0;
+
+    this.nextId = function() {
+        __uniqueId++;
+        return __uniqueId;
     };
 
     return true;

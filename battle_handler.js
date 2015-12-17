@@ -5,22 +5,6 @@ function _BattleHandler() {
      */
     var __that = this;
 
-    /**
-     * Game engine instance.
-     * @type {_Engine}
-     */
-    var __engine ;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {_Engine} Engine instance
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return engine;
-    };
-
     this.State = {
         NONE: "none",
         IN_SET_UP: "battle setup state",
@@ -148,7 +132,7 @@ function _BattleHandler() {
     this.init = function( actors, turn_limit ) {
         this.turnLimit = turn_limit;
         if ( actors.length <= 1 ) {
-            __engine.error( "Not enough actors for battle: " + actors.length );
+            getEngine().error( "Not enough actors for battle: " + actors.length );
             return false;
         }
         this.actors = actors.slice();
@@ -187,7 +171,7 @@ function _BattleHandler() {
         this.customUserSetUp();
     };
 
-    this.customUserSetUp = undefined;
+    this.customUserSetUp = function() {};;
 
     this.setUserAction = function() {
         this.originatorAction = this.customSetUserAction();
@@ -202,10 +186,10 @@ function _BattleHandler() {
     this.customSetUserTarget = undefined;
 
     this.runOriginatorAction = function() {
-        __engine.addElement( NS_GEngine.Subject.ACTION,
+        getEngine().addElement( NS_GEngine.Subject.ACTION,
                              this.originatorAction ).active = true;
         // TODO : This should run only battle actions.
-        // __engine.runActionsTurn();
+        // getEngine().runActionsTurn();
     };
 
     this.runOriginatorActionResult = function() {
@@ -217,7 +201,7 @@ function _BattleHandler() {
     };
 
     this.logBattleActionResult = function() {
-        __engine.log( "[" + this.originator.attributes.life + "] " +
+        getEngine().log( "[" + this.originator.attributes.life + "] " +
                       this.originator.name + " attacked " +
                       "[" + this.target.attributes.life + "] " +
                       this.target.name );
@@ -244,7 +228,7 @@ function _BattleHandler() {
         this.customAiSetUp();
     };
 
-    this.customAiSetUp = undefined;
+    this.customAiSetUp = function() {};
 
 
     this.setAiAction = function() {
@@ -264,12 +248,6 @@ function _BattleHandler() {
     };
 
     this.tearDown = function() {
-        this.customBattleTearDown();
-    };
-
-    this.customBattleTearDown = undefined;
-
-    this.battleEnd = function() {
         if ( ( this.turnLimit !== undefined ) && ( this.turnLimit > 0 ) ) {
             this.turnLimit--;
         }
@@ -278,87 +256,97 @@ function _BattleHandler() {
         } else {
             this.State.set( this.State.IN_SET_UP );
         }
+
+        this.customBattleTearDown();
     };
+
+    this.customBattleTearDown = function() {};
+
+    this.battleEnd = function() {
+        this.customBattleEnd();
+    };
+
+    this.customBattleEnd = function() {};
 
     this.stateMachine = function() {
         switch( this.State.get() ) {
             case this.State.IN_SET_UP:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.findNextOriginator();
                 this.nextStateByBattleTurnPlayableSide( );
                 break;
             case this.State.IN_USER_SET_UP:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.setUserSetUp();
                 this.State.next();
                 break;
             case this.State.IN_USER_WAIT_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 // TODO : Provisional, action should be selected by the user.
                 this.State.next();
                 break;
             case this.State.IN_USER_SET_UP_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.setUserAction();
                 this.setUserTarget();
                 this.State.next();
                 break;
             case this.State.IN_USER_RUN_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.runOriginatorAction();
                 this.State.next();
                 break;
             case this.State.IN_USER_ACTION_RESULT:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.runOriginatorActionResult();
                 this.State.next();
                 break;
             case this.State.IN_USER_TEAR_DOWN:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.userTearDown();
                 this.nextStateByBattleActorQueue();
                 break;
             case this.State.IN_AI_SET_UP:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.setAiSetUp();
                 this.State.next();
                 break;
             case this.State.IN_AI_WAIT_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.State.next();
                 break;
             case this.State.IN_AI_SET_UP_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.setAiAction();
                 this.setAiTarget();
                 this.State.next();
                 break;
             case this.State.IN_AI_RUN_ACTION:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.runOriginatorAction();
                 this.State.next();
                 break;
             case this.State.IN_AI_ACTION_RESULT:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.runOriginatorActionResult();
                 this.State.next();
                 break;
             case this.State.IN_AI_TEAR_DOWN:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.aiTearDown();
                 this.nextStateByBattleActorQueue();
                 break;
             case this.State.IN_TEAR_DOWN:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.tearDown();
                 this.State.next();
                 break;
             case this.State.IN_END:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.battleEnd();
                 break;
             default:
-                __engine.debug( "BattleHandler state: " + this.State.get() );
+                getEngine().debug( "BattleHandler state: " + this.State.get() );
                 return;
         }
         var restate = NS_Action.createAction();

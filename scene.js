@@ -9,20 +9,6 @@ function _Scene() {
      */
     var __that = this;
 
-    /**
-     * Game engine instance
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-    };
-
     return true;
 }
 
@@ -258,6 +244,7 @@ _Scene.prototype.ObjetoScene = function( entity, entity_type ) {
         },
         set: function( val ) {
             __cell = val;
+            __entity.cell = val;
             return __cell;
         }
     } );
@@ -423,6 +410,7 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
         if ( __layout.isInside( [ cell.x, cell.y ] ) ) {
             obj.cell.remove( obj );
             obj.cell = cell;
+            // obj.entity.cell = cell;
             obj.cell.append( obj );
             return true;
         }
@@ -432,7 +420,7 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
     this.removeObjetoFromScene = function( obj ) {
         obj.cell.remove( obj );
         obj.cell = undefined;
-        obj.enity.cell = undefined;
+        // obj.enity.cell = undefined;
         this.removeObjeto( obj );
     };
 

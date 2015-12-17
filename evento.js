@@ -21,23 +21,6 @@ function _Evento() {
     var that = this;
 
     /**
-     * Game engine instance
-     * @access private
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {Boolean} Always true
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return true;
-    };
-
-    /**
      * Evento class for any event used in the game.
      * @class
      * @augments GObject

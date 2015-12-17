@@ -6,22 +6,6 @@ function _Battle() {
     var __that = this;
 
     /**
-     * Game engine instance
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {_Engine} Engine instance
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return engine;
-    };
-
-    /**
      * Engine state attribute.
      * @type {String}
      */
@@ -194,7 +178,7 @@ function _Battle() {
     this.initBattle = function( actors ) {
         this.battle.actors = [];
         if ( actors.length <= 1 ) {
-            __engine.error( "Not enough actors for battle: " + actors.length );
+            getEngine().error( "Not enough actors for battle: " + actors.length );
             return false;
         }
         for ( var i in actors ) {
@@ -225,7 +209,7 @@ function _Battle() {
     this.logBattleRunResultTurn = function() {
         var originator = this.battle.originator;
         var target = this.battle.target;
-        __engine.log( originator.name + " attack " + target.name +
+        getEngine().log( originator.name + " attack " + target.name +
                   "[" + target.attributes.life + "]" );
     };
 
@@ -247,7 +231,7 @@ function _Battle() {
             this.customAvailableTarget();
         } else {
             var actor = this.battle.originator;
-            __engine.log( actor.name + " won the battle" );
+            getEngine().log( actor.name + " won the battle" );
             this.state.set( this.state.IN_BATTLE_END );
         }
     };
@@ -258,7 +242,7 @@ function _Battle() {
      */
     this.execBattleRunTurn = function() {
         this.nextTarget();
-        __engine.runActionsTurn();
+        getEngine().runActionsTurn();
         this.logBattleRunResultTurn();
         this.execBattleRunResultTurn();
     };

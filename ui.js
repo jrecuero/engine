@@ -10,6 +10,15 @@ function _UserItf() {
     var __that = this;
 
     /**
+     * User interface output string.
+     * @param  {String} str String to send to output
+     * @return {undefined} Nothing
+     */
+    this.ouptut = function( str ) {
+        console.log( str );
+    };
+
+    /**
      * User interface log string.
      * @param  {String} str String to send to log
      * @return {undefined} Nothing
@@ -37,7 +46,7 @@ function _UserItf() {
     };
 
     /**
-     * User interface prompt string
+     * User interface prompt string.
      * @param  {String} str String to prompt
      * @return {string} String entered in the prompt dialog
      */
@@ -45,6 +54,13 @@ function _UserItf() {
         return prompt( str );
     };
 
+    /**
+     * User interface for button.
+     * @param  {String} name Button name
+     * @param  {Function} handler Button on-click callback
+     * @param  {String} group <div> group for the button
+     * @return {Button} Button instance created
+     */
     this.button = function( name, handler, group ) {
         var panel;
         if ( group !== undefined ) {
@@ -62,6 +78,10 @@ function _UserItf() {
         return button;
     };
 
+    /**
+     * User interface select.
+     * @type {Object}
+     */
     this.select = {
         create: function( group ) {
             var selection = document.createElement( "select" );
@@ -79,6 +99,10 @@ function _UserItf() {
         },
     };
 
+    /**
+     * User interface TextArea.
+     * @type {Object}
+     */
     this.textarea = {
         create: function( rows, cols, group ) {
             var textarea = document.createElement( "textarea" );

@@ -9,22 +9,6 @@ function _Action() {
      __*/
     var __that = this;
 
-    /**
-     * Game engine instance
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {Boolean} Always true
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return true;
-    };
-
     this.Type = {
         NONE: "none action",
         ACTOR: "actor action",
@@ -49,6 +33,7 @@ function _Action() {
         active: false,
         periodic: 0,
         remove: true,
+        owner: undefined,
 
         runExec: function() {
             return this.execCb.cb( this.execCb.args );
@@ -69,9 +54,10 @@ function _Action() {
         }
     };
 
-    this.createAction = function() {
+    this.createAction = function( owner ) {
         var action = Object.create( this.Action );
         action.objId = ( new GObject() ).objId;
+        action.owner = owner;
         action.execCb = { cb: undefined, args: [] };
         action.passCb = { cb: undefined, args: [] };
         action.errorCb = { cb: undefined, args: [] };
@@ -88,14 +74,12 @@ var NS_Action = new _Action();
  * @param {Integer} steps Number of steps to move
  * @return {Boolean} Always true
  */
-_Action.prototype.move = function( steps, log_cb ) {
-    log_cb = log_cb ? log_cb : NS_GEngine.log;
+_Action.prototype.move = function( owner ) {
     var obj = NS_Action.createAction();
+    obj.owner = owner;
     obj.name = "move";
-    obj.NStype = _Action.Type.MOVE;
-    obj.execCb.args = [ steps ];
+    obj.type = NS_Action.Type.MOVE;
     obj.execCb.cb = function( args ) {
-            log_cb( "you moved " + args[ 0 ] );
             return true;
     };
     return obj;

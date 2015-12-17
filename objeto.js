@@ -10,22 +10,6 @@ function _Objeto() {
     var that = this;
 
     /**
-     * Game engine instance
-     * @type {_Engine}
-     */
-    var __engine;
-
-    /**
-     * Set game engine for the attribute variable
-     * @param {_Engine} engine Game engine instance
-     * @return {Boolean} Always true
-     */
-    this.setEngine = function( engine ) {
-        __engine = engine;
-        return true;
-    };
-
-    /**
      * Objecto class for any object (item, usable, equipment, ...) used in the
      * game.
      * @param {Array} args Arguments required for the constructor
@@ -45,6 +29,9 @@ function _Objeto() {
          * @type {Boolean}
          */
         this.enable = false;
+
+        for ( var flag in NS_Common.Flag ) {}
+            this[ flag ] = false;
 
         /**
          * Set objeto as usable.
@@ -104,7 +91,7 @@ function _Objeto() {
          * @return {Boolean} true if value was set properly, false else
          */
         this.setAttr = function( attr, value ) {
-            __attributes[attr] = value;
+            __attributes[ attr ] = value;
             return true;
         };
 
@@ -113,26 +100,34 @@ function _Objeto() {
          * @param  {String} attr Attribute name
          * @return {Object} Attribute value
          */
-        this.getAttr = function ( attr ) {
-            return __attributes[attr];
+        this.getAttr = function( attr ) {
+            return __attributes[ attr ];
         };
 
         return true;
     };
     inheritKlass( GObject, this.Objeto );
 
-    /**
-     * Key objeto.
-     * @param {Array} args Key objeto arguments
-     * @return {Boolean} Always true
-     */
-    this.Key = function( args ) {
-        that.Objeto.call( this, args );
-        return true;
-    };
-    inheritKlass( this.Objeto, this.Key );
-
     return true;
 }
 
 var NS_Objeto = new _Objeto();
+
+/**
+ * Key objeto.
+ * @param {Array} args Key objeto arguments
+ * @return {Boolean} Always true
+ */
+_Objeto.prototype.Key = function( args ) {
+    NS_Objeto.Objeto.call( this, args );
+    this[ NS_Common.Flag.USE ] = true;
+    this[ NS_Common.Flag.TAKE ] = true;
+    this[ NS_Common.Flag.DROP ] = true;
+};
+inheritKlass( NS_Objeto.Objeto, _Objeto.prototype.Key );
+
+_Objeto.prototype.Wall = function( args ) {
+    NS_Objeto.Objeto.call( this, args );
+    this[ NS_Common.Flag.SOLID ] = true;
+};
+inheritKlass( NS_Objeto.Objeto, _Objeto.prototype.Wall );
