@@ -74,11 +74,12 @@ var NS_Action = new _Action();
  * @param {Integer} steps Number of steps to move
  * @return {Boolean} Always true
  */
-_Action.prototype.move = function( owner ) {
+_Action.prototype.move = function( new_cell, owner ) {
     var obj = NS_Action.createAction();
     obj.owner = owner;
     obj.name = "move";
     obj.type = NS_Action.Type.MOVE;
+    obj.cell = new_cell;
     obj.execCb.cb = function( args ) {
             return true;
     };

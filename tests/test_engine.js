@@ -452,8 +452,8 @@ function test_small_game_proto() {
 
     var createMainScene = function() {
         var scene = new NS_Scene.Scene( "main-scene", 10, 10 );
-        NS_GEngine.addElement( NS_GEngine.Subject.SCENE, scene );
-        NS_GEngine.setScene( 0 );
+        getEngine().addElement( getEngine().Subject.SCENE, scene );
+        getEngine().setScene( 0 );
     };
 
     var createActors = function() {
@@ -466,12 +466,12 @@ function test_small_game_proto() {
             enemies[ i ].attributes = new Attrs( 80, 8, 1 );
             allActors.push( enemies[ i ] );
         }
-        NS_GEngine.addElements( NS_GEngine.Subject.ACTOR, allActors );
+        getEngine().addElements( getEngine().Subject.ACTOR, allActors );
     };
 
     var createButtons = function() {
-        mplayer.ui.action.onclick = that.on_action();
-        mplayer.createWidgets();
+        getEngine().ui.action.onclick = that.on_action();
+        getEngine().createWidgets();
     };
 
     var createObjetos = function() {
@@ -482,7 +482,7 @@ function test_small_game_proto() {
     };
 
     var placeObjetosInScenario = function() {
-        var scene = NS_GEngine.sceneHandler.scene;
+        var scene = getEngine().sceneHandler.scene;
         for ( var o in objetos ) {
             scene.createObjetoInScene( objetos[ o ],
                                         scene.getCellAt( 2, o ),
@@ -491,7 +491,7 @@ function test_small_game_proto() {
     };
 
     var placeActorsInScenario = function() {
-        var scene = NS_GEngine.sceneHandler.scene;
+        var scene = getEngine().sceneHandler.scene;
         scene.createObjetoInScene( mplayer,
                                    scene.getCellAt( 0, 0 ),
                                    NS_Common.EntityType.ACTOR );
@@ -547,17 +547,19 @@ function test_small_game_proto() {
         createButtons();
         createObjetos();
 
-        NS_GEngine.log = testLog;
+        // Engine Setup
+        // getEngine().log = testLog;
         NS_SceneHandler.init();
-        NS_SceneHandler.scene = NS_GEngine.playingScene;
-        NS_GEngine.sceneHandler = NS_SceneHandler;
+        NS_SceneHandler.scene = getEngine().playingScene;
+        getEngine().sceneHandler = NS_SceneHandler;
+        getEngine().activeActor = mplayer;
 
         placeObjetosInScenario();
         placeActorsInScenario();
 
         setupBattleHandler();
 
-        NS_GEngine.start();
+        getEngine().start();
     };
 }
 

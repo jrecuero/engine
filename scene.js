@@ -146,7 +146,7 @@ _Scene.prototype.Layout = function( name, xdim, ydim ) {
     this.move = {
         defaultCell: new NS_Scene.Cell( 0, 0 ),
 
-        forward: function( x, y ) {
+        up: function( x, y ) {
             var result = new NS_Scene.Point( x, y );
             if ( __layout.isInside( [ x, y - 1 ] ) ) {
                 result.y--;
@@ -154,7 +154,7 @@ _Scene.prototype.Layout = function( name, xdim, ydim ) {
             return result;
         },
 
-        backward:  function( x, y ) {
+        down:  function( x, y ) {
             var result = new NS_Scene.Point( x, y );
             if ( __layout.isInside( [ x, y + 1 ] ) ) {
                 result.y++;
@@ -295,55 +295,55 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
         return __layout.getCellAt( x, y );
     };
 
-    /**
-     * Move class.
-     * @type {Object}
-     */
-    this.move = {
-        forward: function( x, y ) {
-            return __layout.move.forward( x, y );
-        },
+    // /**
+    //  * Move class.
+    //  * @type {Object}
+    //  */
+    // this.move = {
+    //     up: function( x, y ) {
+    //         return __layout.move.up( x, y );
+    //     },
 
-        backward:  function( x, y ) {
-            return __layout.move.backward( x, y );
-        },
+    //     down:  function( x, y ) {
+    //         return __layout.move.down( x, y );
+    //     },
 
-        left: function( x, y ) {
-            return __layout.move.left( x, y );
-        },
+    //     left: function( x, y ) {
+    //         return __layout.move.left( x, y );
+    //     },
 
-        right: function( x, y ) {
-            return __layout.move.right( x, y );
-        },
+    //     right: function( x, y ) {
+    //         return __layout.move.right( x, y );
+    //     },
 
-        equal: function( pos1, pos2 ) {
-            return ( ( pos1[ 0 ] === pos2[ 0 ] ) && ( pos1[ 1 ] === pos2[ 1 ] ) );
-        },
+    //     equal: function( pos1, pos2 ) {
+    //         return ( ( pos1[ 0 ] === pos2[ 0 ] ) && ( pos1[ 1 ] === pos2[ 1 ] ) );
+    //     },
 
-        canForward: function( x, y ) {
-            return __layout.isInside( [ x, y - 1 ] );
-        },
+    //     canUp: function( x, y ) {
+    //         return __layout.isInside( [ x, y - 1 ] );
+    //     },
 
-        canBackward: function( x, y ) {
-            return __layout.isInside( [ x, y + 1 ] );
-        },
+    //     canDown: function( x, y ) {
+    //         return __layout.isInside( [ x, y + 1 ] );
+    //     },
 
-        canLeft: function( x, y ) {
-            return __layout.isInside( [ x - 1, y ] );
-        },
+    //     canLeft: function( x, y ) {
+    //         return __layout.isInside( [ x - 1, y ] );
+    //     },
 
-        canRight: function( x, y ) {
-            return __layout.isInside( [ x + 1, y ] );
-        },
+    //     canRight: function( x, y ) {
+    //         return __layout.isInside( [ x + 1, y ] );
+    //     },
 
-        setAt: function( x, y, entity ) {
-            return __layout.setAt( x, y, entity );
-        },
+    //     setAt: function( x, y, entity ) {
+    //         return __layout.setAt( x, y, entity );
+    //     },
 
-        removeAt: function( x, y, entity ) {
-            return __layout.removeAt( x, y, entity );
-        }
-    };
+    //     removeAt: function( x, y, entity ) {
+    //         return __layout.removeAt( x, y, entity );
+    //     }
+    // };
 
     /**
      * Add new objeto to the scene.
@@ -456,6 +456,10 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
 
     this.getActorsAt = function( x, y ) {
         return this.getEntitiesAt( NS_Common.EntityType.ACTOR, x, y );
+    };
+
+    this.getLayout = function() {
+        return __layout;
     };
 
     return true;

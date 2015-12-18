@@ -48,13 +48,13 @@ function _Actor() {
                 }
                 return result;
             },
-            canForward: function() {
-                return getEngine().playingScene.move.canForward( __actor.cell.x,
-                                                                 __actor.cell.y );
+            canUp: function() {
+                return getEngine().playingScene.move.canUp( __actor.cell.x,
+                                                            __actor.cell.y );
             },
-            canBackward: function() {
-                return getEngine().playingScene.move.canBackward( __actor.cell.x,
-                                                                  __actor.cell.y );
+            canDown: function() {
+                return getEngine().playingScene.move.canDown( __actor.cell.x,
+                                                              __actor.cell.y );
             },
             canLeft: function() {
                 return getEngine().playingScene.move.canLeft( __actor.cell.x,
@@ -64,13 +64,13 @@ function _Actor() {
                 return getEngine().playingScene.move.canRight( __actor.cell.x,
                                                                __actor.cell.y );
             },
-            forward: function() {
-                return this.move( getEngine().playingScene.move.forward,
+            up: function() {
+                return this.move( getEngine().playingScene.move.up,
                                   __actor.cell.x,
                                   __actor.cell.y );
             },
-            backward: function() {
-                return this.move( getEngine().playingScene.move.backward,
+            down: function() {
+                return this.move( getEngine().playingScene.move.down,
                                   __actor.cell.x,
                                   __actor.cell.y );
             },
@@ -199,8 +199,8 @@ _Actor.prototype.Player = function( args ) {
         //     }
         //     if ( actorsNames.length > 0 ) {
         //         getEngine().log( "there are actor at new position: " + actorsNames.join( "," ) );
-        //         __that.ui.forward.widget.disabled = true;
-        //         __that.ui.backward.widget.disabled = true;
+        //         __that.ui.up.widget.disabled = true;
+        //         __that.ui.down.widget.disabled = true;
         //         __that.ui.left.widget.disabled = true;
         //         __that.ui.right.widget.disabled = true;
         //         __createBattle( getEngine().actors );
@@ -208,15 +208,15 @@ _Actor.prototype.Player = function( args ) {
         // }
     };
 
-    var onMoveForward = function() {
-        var newPos = getEngine().playingScene.move.forward( __that.cell.x,
-                                                            __that.cell.y );
+    var onMoveUp = function() {
+        var newPos = getEngine().playingScene.move.up( __that.cell.x,
+                                                       __that.cell.y );
         __onMove( newPos );
     };
 
-    var onMoveBackward = function() {
-        var newPos = getEngine().playingScene.move.backward( __that.cell.x,
-                                                             __that.cell.y );
+    var onMoveDown = function() {
+        var newPos = getEngine().playingScene.move.down( __that.cell.x,
+                                                         __that.cell.y );
         __onMove( newPos );
     };
 
@@ -234,12 +234,12 @@ _Actor.prototype.Player = function( args ) {
 
     this.ui = {
         move: Object.create( __uiData ),
-        forward: { widget: undefined,
-                   onclick: onMoveForward,
-                   flag: NS_Common.Flag.MOVE },
-        backward: { widget: undefined,
-                    onclick: onMoveBackward,
-                    flag: NS_Common.Flag.MOVE },
+        up: { widget: undefined,
+              onclick: onMoveUp,
+              flag: NS_Common.Flag.MOVE },
+        down: { widget: undefined,
+                onclick: onMoveDown,
+                flag: NS_Common.Flag.MOVE },
         left: { widget: undefined,
                 onclick: onMoveLeft,
                 flag: NS_Common.Flag.MOVE },
@@ -295,13 +295,13 @@ _Actor.prototype.Player = function( args ) {
     };
 
     this.createWidgets = function() {
-        this.ui.forward.widget = NS_UI.button( "forward", this.ui.forward.onclick, "move" );
-        this.ui.backward.widget = NS_UI.button( "backward", this.ui.backward.onclick, "move" );
+        this.ui.up.widget = NS_UI.button( "up", this.ui.up.onclick, "move" );
+        this.ui.down.widget = NS_UI.button( "down", this.ui.down.onclick, "move" );
         this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick, "move" );
         this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick, "move" );
         this.ui.panels.move = { enable: true,
-                                widgets: [ __that.ui.forward,
-                                           __that.ui.backward,
+                                widgets: [ __that.ui.up,
+                                           __that.ui.down,
                                            __that.ui.left,
                                            __that.ui.right ] };
 

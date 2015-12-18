@@ -13,20 +13,6 @@ function _Engine() {
     var __that = this;
 
     /**
-     * Attribute that stores the log method to use in the engine.
-     * @type {Function}
-     */
-    this.log = NS_UI.log;
-
-    /**
-     * Attribute that stores the error method to use in the engine.
-     * @type {Function}
-     */
-    this.error = NS_UI.error;
-
-    this.debug = NS_UI.debug;
-
-    /**
      * Keeps the interval ID returned by setInterval.
      */
     var __tickId;
@@ -106,6 +92,20 @@ function _Engine() {
     };
 
     /**
+     * Attribute that stores the log method to use in the engine.
+     * @type {Function}
+     */
+    this.log = NS_UI.log;
+
+    /**
+     * Attribute that stores the error method to use in the engine.
+     * @type {Function}
+     */
+    this.error = NS_UI.error;
+
+    this.debug = NS_UI.debug;
+
+    /**
      * Table with all game actors.
      * @type {Array}
      */
@@ -179,8 +179,139 @@ function _Engine() {
                   custom: undefined }
     };
 
+    this.activeActor =  undefined;
     this.playingScene = undefined;
     this.playingSceneId = undefined;
+
+    this.ui = {
+        up: { widget: undefined, onclick: undefined, flag: undefined },
+        down: { widget: undefined, onclick: undefined, flag: undefined },
+        left: { widget: undefined, onclick: undefined, flag: undefined },
+        right: { widget: undefined, onclick: undefined, flag: undefined },
+        action: { widget: undefined, onclick: undefined, flag: undefined },
+        use: { widget: undefined, onclick: undefined, flag: undefined },
+        look: { widget: undefined, onclick: undefined, flag: undefined },
+        take: { widget: undefined, onclick: undefined, flag: undefined },
+        drop: { widget: undefined, onclick: undefined, flag: undefined },
+        panels: {}
+    };
+
+    var __onMove = function( new_pos ) {
+        var scene = __that.playingScene;
+        var cell = scene.getCellAt( new_pos.x, new_pos.y );
+        var actor = __that.activeActor;
+        scene.replaceObjetoInScene( actor.objScene, cell );
+        __that.debug( "move to " + new_pos.x + ", " + new_pos.y );
+        var actionMove = new NS_Action.move( cell, "player" );
+        __that.addElement( __that.Subject.ACTION, actionMove ).active = true;
+    };
+
+    var onMoveUp = function() {
+        var actor = __that.activeActor;
+        var newPos = __that.sceneHandler.move.up( actor.cell.x,
+                                                  actor.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveDown = function() {
+        var actor = __that.activeActor;
+        var newPos = __that.sceneHandler.move.down( actor.cell.x,
+                                                    actor.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveLeft = function() {
+        var actor = __that.activeActor;
+        var newPos = __that.sceneHandler.move.left( actor.cell.x,
+                                                    actor.cell.y );
+        __onMove( newPos );
+    };
+
+    var onMoveRight = function() {
+        var actor = __that.activeActor;
+        var newPos = __that.sceneHandler.move.right( actor.cell.x,
+                                                     actor.cell.y );
+        __onMove( newPos );
+    };
+
+    this.setWidgetForFlagTo = function( flag, value ) {
+        for ( var prop in this.ui ) {
+            if ( ( this.ui[ prop ].hasOwnProperty( "flag" ) ) &&
+                 ( this.ui[ prop ][ flag ] === flag ) ) {
+                this.ui[ prop ].widget.disabled = !value;
+            }
+        }
+    };
+
+    this.setPanelTo = function( panel_name, enabled ) {
+        this.ui.panels[ panel_name ].enable = enabled;
+        for ( var i in this.ui.panels[ panel_name ].widgets ) {
+            this.ui.panels[ panel_name ].widgets[ i ].widget.disabled = !enabled;
+        }
+    };
+
+    this.ui.enablePanels = function( panels ) {
+        panels = panels === undefined ? [ "move", "battle", "action" ] : panels;
+        for ( var i in panels ) {
+            this.setPanelTo( panels[ i ], true );
+        }
+    };
+
+    this.ui.disablePanels = function( panels ) {
+        panels = panels === undefined ? [ "move", "battle", "action" ] : panels;
+        for ( var i in panels ) {
+            this.setPanelTo( panels[ i ], false );
+        }
+    };
+
+    this.createWidgets = function() {
+        this.ui.up.onclick = onMoveUp;
+        this.ui.up.widget = NS_UI.button( "up", this.ui.up.onclick, "move" );
+        this.ui.up.flag = NS_Common.Flag.MOVE;
+
+        this.ui.down.onclick = onMoveDown;
+        this.ui.down.widget = NS_UI.button( "down", this.ui.down.onclick, "move" );
+        this.ui.down.flag = NS_Common.Flag.MOVE;
+
+        this.ui.left.onclick = onMoveLeft;
+        this.ui.left.widget = NS_UI.button( "left", this.ui.left.onclick, "move" );
+        this.ui.left.flag = NS_Common.Flag.MOVE;
+
+        this.ui.right.onclick = onMoveRight;
+        this.ui.right.widget = NS_UI.button( "right", this.ui.right.onclick, "move" );
+        this.ui.right.flag = NS_Common.Flag.MOVE;
+
+        this.ui.panels.move = { enable: true,
+                                widgets: [ this.ui.up,
+                                           this.ui.down,
+                                           this.ui.left,
+                                           this.ui.right ] };
+
+        this.ui.action.widget = NS_UI.button( "action", this.ui.action.onclick, "battle" );
+        this.ui.action.flag = NS_Common.Flag.ACTION;
+        this.ui.panels.battle = { enable: true,
+                                  widgets: [ this.ui.action ] };
+
+        this.ui.use.widget = NS_UI.button( "use", this.ui.use.onclick, "action" );
+        this.ui.use.flag = NS_Common.Flag.USE;
+
+        this.ui.look.widget = NS_UI.button( "look", this.ui.look.onclick, "action" );
+        this.ui.look.flag = NS_Common.Flag.LOOK;
+
+        this.ui.take.widget = NS_UI.button( "take", this.ui.take.onclick, "action" );
+        this.ui.take.flag = NS_Common.Flag.TAKE;
+
+        this.ui.drop.widget = NS_UI.button( "drop", this.ui.drop.onclick, "action" );
+        this.ui.drop.onclick = undefined;
+        this.ui.drop.flag = NS_Common.Flag.DROP;
+
+        this.ui.panels.action = { enable: true,
+                                  widgets: [ this.ui.use,
+                                             this.ui.look,
+                                             this.ui.take,
+                                             this.ui.drop ] };
+
+    };
 
     /**
      * Check if the given element is found in an element table.
