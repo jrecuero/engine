@@ -344,6 +344,7 @@ function _BattleHandler() {
             case this.State.IN_END:
                 getEngine().debug( "BattleHandler state: " + this.State.get() );
                 this.battleEnd();
+                this.State.next();
                 break;
             default:
                 getEngine().debug( "BattleHandler state: " + this.State.get() );

@@ -458,6 +458,10 @@ _Scene.prototype.Scene = function( name, xdim, ydim ) {
         return this.getEntitiesAt( NS_Common.EntityType.ACTOR, x, y );
     };
 
+    this.getObjetosAt = function( x, y ) {
+        return this.getEntitiesAt( NS_Common.EntityType.OBJETO, x, y );
+    };
+
     this.getLayout = function() {
         return __layout;
     };

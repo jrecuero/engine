@@ -23,10 +23,47 @@ function _SceneHandler() {
         getEngine().registerActionCallback( "player", NS_Action.Type.MOVE, __scanScenario );
     };
 
+    var __scanForActors = function( x, y ) {
+        var actors = __that.scene.getActorsAt( x, y );
+        var activeActor = getEngine().activeActor;
+        var battleActors = [];
+        for ( var i = 0; i < actors.length; i++ ) {
+            if ( ( actors[ i ] != activeActor ) &&
+                 ( actors[ i ].playableSide != activeActor.playableSide ) ){
+                battleActors.push( actors[ i ] );
+            }
+        }
+        // If there are enemy actors, trigger a battle action.
+        if ( battleActors.length > 0 ) {
+            battleActors.push( activeActor );
+            getEngine().ui.up.widget.disabled = true;
+            getEngine().ui.down.widget.disabled = true;
+            getEngine().ui.left.widget.disabled = true;
+            getEngine().ui.right.widget.disabled = true;
+            var actionBattle = NS_Action.battle( battleActors );
+            NS_UI.debug( "Battle starts!" );
+            getEngine().addElement( NS_GEngine.Subject.ACTION, actionBattle ).active = true;
+            return true;
+        }
+        return false;
+    };
+
+    var __scanForObjetos = function( x, y ) {
+        var objetos = __that.scene.getObjetosAt( x, y );
+        if ( objetos.length > 0 ) {
+            getEngine().ui.take.widget.disabled = false;
+            return true;
+        } else {
+            getEngine().ui.take.widget.disabled = true;
+            return false;
+        }
+    };
+
     var __scanScenario = function( args ) {
         var cell = args.cell;
         NS_UI.debug( "Scene Handler: Scan at " + cell.x + ", " + cell.y + " ..." );
-        // Check cells for any objeto or actor placed there.
+        __scanForObjetos( cell.x, cell.y );
+        __scanForActors( cell.x, cell.y );
     };
 
     var __isXCell = function( attr, x, y ) {

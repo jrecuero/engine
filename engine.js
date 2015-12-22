@@ -436,7 +436,7 @@ function _Engine() {
             var entry = __that.actionCallbacks[ i ];
             if ( ( ( entry.owner === action.owner ) &&
                    ( entry.type === action.type ) ) ||
-                 ( ( entry.owner === undefiend ) &&
+                 ( ( entry.owner === undefined ) &&
                    ( entry.type === action.type ) ) ) {
                 entry.execCb.cb( action, entry.execCb.args );
             }
