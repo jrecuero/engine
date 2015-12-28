@@ -470,7 +470,7 @@ function test_small_game_proto() {
     };
 
     var createButtons = function() {
-        getEngine().ui.action.onclick = that.on_action();
+        getEngine().ui.action.onclick = that.on_action;
         getEngine().createWidgets();
         targetSelect = NS_UI.select.create();
     };
@@ -529,6 +529,10 @@ function test_small_game_proto() {
             return targetSelect[ index ].handler;
         };
 
+        NS_BattleHandler.customUserTearDown = function() {
+            getEngine().ui.action.widget.disabled = true;
+        };
+
         NS_BattleHandler.customAiSetUp = function() {
             removeAllTargets();
             var players = NS_BattleHandler.getPlayerActors();
@@ -547,6 +551,10 @@ function test_small_game_proto() {
             return targetSelect[ index ].handler;
         };
 
+        NS_BattleHandler.customAiTearDown = function() {
+            getEngine().ui.action.widget.disabled = false;
+        };
+
         NS_BattleHandler.customBattleTearDown = function() {
             removeAllTargets();
         };
@@ -560,7 +568,8 @@ function test_small_game_proto() {
     };
 
     this.on_action = function() {
-
+        getEngine().battleHandler.State.next();
+        getEngine().battleHandler.next();
     };
 
     window.onload = function() {
@@ -578,12 +587,15 @@ function test_small_game_proto() {
         NS_SceneHandler.init();
         NS_SceneHandler.scene = getEngine().playingScene;
         getEngine().sceneHandler = NS_SceneHandler;
+        getEngine().battleHandler = NS_BattleHandler;
         getEngine().activeActor = mplayer;
 
         placeObjetosInScenario();
         placeActorsInScenario();
 
         setupBattleHandler();
+
+        getEngine().ui.action.widget.disabled = true;
 
         getEngine().start();
     };

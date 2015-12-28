@@ -29,10 +29,11 @@ function _SceneHandler() {
         var battleActors = [];
         for ( var i = 0; i < actors.length; i++ ) {
             if ( ( actors[ i ] != activeActor ) &&
-                 ( actors[ i ].playableSide != activeActor.playableSide ) ){
+                 ( actors[ i ].playableSide != activeActor.playableSide ) ) {
                 battleActors.push( actors[ i ] );
             }
         }
+
         // If there are enemy actors, trigger a battle action.
         if ( battleActors.length > 0 ) {
             battleActors.push( activeActor );
@@ -115,28 +116,28 @@ function _SceneHandler() {
             if ( this.canUp( x, y ) ) {
                 return __layout.move.up( x, y );
             }
-            return false;
+            return ( new NS_Scene.Point( x, y ) );
         },
 
         down:  function( x, y ) {
             if ( this.canDown( x, y ) ) {
                 return __layout.move.down( x, y );
             }
-            return false;
+            return ( new NS_Scene.Point( x, y ) );
         },
 
         left: function( x, y ) {
             if ( this.canLeft( x, y ) ) {
                 return __layout.move.left( x, y );
             }
-            return false;
+            return ( new NS_Scene.Point( x, y ) );
         },
 
         right: function( x, y ) {
-            if ( this.canRight( x, y) ) {
+            if ( this.canRight( x, y ) ) {
                 return __layout.move.right( x, y );
             }
-            return false;
+            return ( new NS_Scene.Point( x, y ) );
         },
 
         equal: function( pos1, pos2 ) {

@@ -139,6 +139,8 @@ function _Engine() {
 
     this.sceneHandler = undefined;
 
+    this.battleHandler = undefined;
+
     /**
      * Custom Actor creation method for the engine
      * @param  {Actor} actor Actor being created

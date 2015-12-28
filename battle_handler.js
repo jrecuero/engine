@@ -171,7 +171,7 @@ function _BattleHandler() {
         this.customUserSetUp();
     };
 
-    this.customUserSetUp = function() {};;
+    this.customUserSetUp = function() {};
 
     this.setUserAction = function() {
         this.originatorAction = this.customSetUserAction();
@@ -222,7 +222,10 @@ function _BattleHandler() {
 
     this.userTearDown = function() {
         this.pushOriginatorBack();
+        this.customUserTearDown();
     };
+
+    this.customUserTearDown = function() {};
 
     this.setAiSetUp = function() {
         this.customAiSetUp();
@@ -245,7 +248,10 @@ function _BattleHandler() {
 
     this.aiTearDown = function() {
         this.pushOriginatorBack();
+        this.customAiTearDown();
     };
+
+    this.customAiTearDown = function() {};
 
     this.tearDown = function() {
         if ( ( this.turnLimit !== undefined ) && ( this.turnLimit > 0 ) ) {
@@ -268,7 +274,18 @@ function _BattleHandler() {
 
     this.customBattleEnd = function() {};
 
+    this.next = function() {
+        var restate = NS_Action.createAction();
+        restate.name = "re-schedule state machine";
+        restate.type = NS_Action.Type.BATTLE;
+        restate.execCb.cb = function() {
+            __that.stateMachine();
+        };
+        NS_GEngine.addElement( NS_GEngine.Subject.ACTION, restate ).active = true;
+    };
+
     this.stateMachine = function() {
+        var scheduleNext = true;
         switch( this.State.get() ) {
             case this.State.IN_SET_UP:
                 getEngine().debug( "BattleHandler state: " + this.State.get() );
@@ -283,7 +300,8 @@ function _BattleHandler() {
             case this.State.IN_USER_WAIT_ACTION:
                 getEngine().debug( "BattleHandler state: " + this.State.get() );
                 // TODO : Provisional, action should be selected by the user.
-                this.State.next();
+                // this.State.next();
+                scheduleNext = false;
                 break;
             case this.State.IN_USER_SET_UP_ACTION:
                 getEngine().debug( "BattleHandler state: " + this.State.get() );
@@ -350,13 +368,9 @@ function _BattleHandler() {
                 getEngine().debug( "BattleHandler state: " + this.State.get() );
                 return;
         }
-        var restate = NS_Action.createAction();
-        restate.name = "re-schedule state machine";
-        restate.type = NS_Action.Type.BATTLE;
-        restate.execCb.cb = function() {
-            __that.stateMachine();
-        };
-        NS_GEngine.addElement( NS_GEngine.Subject.ACTION, restate ).active = true;
+        if ( scheduleNext ) {
+            this.next();
+        }
     };
 
     return true;
