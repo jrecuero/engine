@@ -149,7 +149,7 @@ function _BattleHandler() {
             return true;
         } else {
             this.originator = undefined;
-            return false
+            return false;
         }
     };
 

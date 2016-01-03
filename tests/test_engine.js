@@ -471,7 +471,7 @@ function test_small_game_proto() {
 
     var createButtons = function() {
         getEngine().ui.action.onclick = that.on_action;
-        getEngine().createWidgets();
+        getEngine().ui.createWidgets();
         targetSelect = NS_UI.select.create();
     };
 

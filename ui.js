@@ -84,8 +84,16 @@ function _UserItf() {
      */
     this.select = {
         create: function( group ) {
+            var panel;
+            if ( group !== undefined ) {
+                panel =document.getElementById( group );
+            }
             var selection = document.createElement( "select" );
-            document.body.appendChild( selection );
+            if ( panel !== undefined ) {
+                panel.appendChild( selection );
+            } else {
+                document.body.appendChild( selection );
+            }
             return selection;
         },
 
