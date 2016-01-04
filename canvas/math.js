@@ -118,3 +118,34 @@ function getCubicBezier( t, c1, c2, c3, c4 ) {
 function drawCubicBezier( ctx, c1, c2, c3, c4, resolution ) {
     return drawBezier( ctx, getCubicBezier, [ c1, c2, c3, c4 ], resolution );
 }
+
+function getHypercubicBezier( t, c1, c2, c3, c4, c5 ) {
+    var B1 = function( t ) {
+        return ( 1 - t ) * ( 1 - t ) * ( 1 - t ) * ( 1 - t );
+    };
+
+    var B2 = function( t ) {
+        return 4 * t * ( 1 - t ) * ( 1 - t ) * ( 1 - t );
+    };
+
+    var B3 = function( t ) {
+        return 6 * t * t * ( 1 - t ) * ( 1- t );
+    };
+
+    var B4 = function( t ) {
+        return 4 * t * t * t * ( 1 - t);
+    };
+
+    var B5 = function( t ) {
+        return t * t * t * t;
+    };
+
+    var pos = new Point();
+    pos.x = c1.x * B1( t ) + c2.x * B2( t ) + c3.x * B3( t ) + c4.x * B4( t ) + c5.x * B5( t );
+    pos.y = c1.y * B1( t ) + c2.y * B2( t ) + c3.y * B3( t ) + c4.y * B4( t ) + c5.y * B5( t );
+    return pos;
+}
+
+function drawHypercubicBezier( ctx, c1, c2, c3, c4, c5, resolution ) {
+    return drawBezier( ctx, getHypercubicBezier, [ c1, c2, c3, c4, c5 ], resolution );
+}
