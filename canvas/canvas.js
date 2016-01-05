@@ -3,7 +3,103 @@ var paths = [];
 var steps = [];
 var cars = [];
 var colors = [ "red", "blue", "green", "cyan", "yellow" ];
-var specs = [ { speed: 6 }, { speed: 5 }, { speed: 6 }, { speed: 4 } ];
+var SEGMENT_TYPE = { straight: 0, curve: 1, deep_curve: 2 };
+var specs = [ { speed_s: 6, speed_c: 1, speed_d: 6 },
+              { speed_s: 5, speed_c: 2, speed_d: 2 },
+              { speed_s: 6, speed_c: 5, speed_d: 1 },
+              { speed_s: 4, speed_c: 6, speed_d: 5 } ];
+
+var LINE_LEN = 100.0;
+
+function drawLineWithTwoPoints( ctx, p1, p2, resolution ) {
+    drawLineBezier( ctx, p1, p2, resolution );
+    return p2;
+}
+
+function drawLine( ctx, start_p, length, angle, resolution ) {
+    if ( !angle ) angle = 0;
+    var endP = Point( start_p.x + length, start_p.y );
+    var rotPair = rotate( [ start_p, endP ], angle );
+    return drawLineWithTwoPoints( ctx, start_p, rotPair[ 1 ], resolution );
+}
+
+function drawCurve( ctx, start_p, ctrl_p, end_p, percent, resolution ) {
+    if ( percent === undefined ) percent = 50;
+    var percentV = percent / 100;
+    var mid, midP;
+    if ( start_p.y === ctrl_p.y ) {
+        mid = start_p.x + Math.abs( start_p.x - end_p.x ) * percentV;
+        midP = Point( mid, start_p.y );
+    } else if ( start_p.y === ctrl_p.y ) {
+        mid = start_p.y + Math.abs( start_p.y - end_p.y ) * percentV;
+        midP = Point( start_p.x, mid );
+    } else {
+        return undefined;
+    }
+    var endP = getCuadraticBezier( percentV, start_p, ctrl_p, end_p );
+    drawCuadraticBezier( ctx, start_p, midP, endP, resolution );
+    return endP;
+}
+
+function st1( ctx, start_p, angle, resolution ) {
+    return drawLine( ctx, start_p, LINE_LEN, angle, resolution );
+}
+
+function st2( ctx, start_p, angle, resolution ) {
+    return drawLine( ctx, start_p, LINE_LEN/2, angle, resolution );
+}
+
+function st4( ctx, start_p, angle, resolution ) {
+    return drawLine( ctx, start_p, LINE_LEN/4, angle, resolution );
+}
+
+function cv1( ctx, start_p, ctrl_p, end_p, resolution ) {
+    return drarCurve( ctx, start_p, ctrl_p, end_p, 100, resolution );
+}
+
+function cv2( ctx, start_p, ctrl_p, end_p, resolution ) {
+    return drarCurve( ctx, start_p, ctrl_p, end_p, 50, resolution );
+}
+
+function cv4( ctx, start_p, ctrl_p, end_p, resolution ) {
+    return drarCurve( ctx, start_p, ctrl_p, end_p, 25, resolution );
+}
+
+function fullCurve( ctx, points, resolution ) {
+    drawCuadraticBezier( ctx, points[ 0 ], points[ 1 ], points[ 2 ], resolution );
+    return points[ 2 ];
+}
+
+function halfCurve( ctx, points, resolution ) {
+    var mid = points[ 0 ].x + Math.abs( points[ 0 ].x - points[ 1 ].x ) / 2;
+    var midP = Point( mid, points[ 0 ].y );
+    var endP = getCuadraticBezier( 0.5, points[ 0 ], points[ 1 ], points[ 2 ] );
+    return fullCurve( ctx, points[ 0 ], midP, endP, resolution );
+}
+
+function rotate( points, angle ) {
+    var x = points[ 1 ].x - points[ 0 ].x;
+    var y = points[ 1 ].y - points[ 0 ].y;
+    var rad = angle * Math.PI / 180;
+    var newx = x * Math.cos( rad ) - y * Math.sin( rad );
+    var newy = y * Math.cos( rad ) + x * Math.sin( rad );
+    newx = parseFloat( newx.toFixed( 2 ) );
+    newy = parseFloat( newy.toFixed( 2 ) );
+    var result = Point( points[ 0 ].x + newx, points[ 0 ].y + newy );
+    return [ points[ 0 ], result ];
+}
+
+function getSegmentSpeed( segment_type, spec ) {
+    var segmentSpeed = 0;
+    if ( segment_type === SEGMENT_TYPE.straight ) {
+        segmentSpeed = spec.speed_s;
+    } else if ( segment_type === SEGMENT_TYPE.curve ) {
+        segmentSpeed = spec.speed_c;
+    } else {
+        segmentSpeed = spec.speed_d;
+    }
+    return segmentSpeed;
+}
 
 function getPositionInPath( path, segment, t ) {
     var f = path[ segment ].f;
@@ -32,37 +128,37 @@ function createPath( p ) {
 
     C1 = Point( 100, 10 + diff );
     C2 = Point( 200, 10 + diff );
-    paths[ p ].push( { f: getLineBezier, args: [ C1, C2 ] } );
+    paths[ p ].push( { f: getLineBezier,
+                       args: [ C1, C2 ],
+                       type: SEGMENT_TYPE.straight } );
     steps.push( 0.02 );
-
-    // Steps.push(0.01);
 
     C1 = Point( 200, 10 + diff );
     C2 = Point( 350 - diff, 0 + diff );
     C3 = Point( 450 - diff, 200 - diff );
     C4 = Point( 300, 200 - diff );
-    paths[ p ].push( { f: getCubicBezier, args: [ C1, C2, C3, C4 ] } );
+    paths[ p ].push( { f: getCubicBezier,
+                       args: [ C1, C2, C3, C4 ],
+                       type: SEGMENT_TYPE.curve } );
     steps.push( 0.005 );
-
-    // Steps.push(0.01);
 
     C1 = Point( 300, 200 - diff );
     C2 = Point( 100, 200 - diff );
     C3 = Point( 100, 400 - diff );
     C4 = Point( 50 + diff, 100 );
-    paths[ p ].push( { f: getCubicBezier, args: [ C1, C2, C3, C4 ] } );
+    paths[ p ].push( { f: getCubicBezier,
+                       args: [ C1, C2, C3, C4 ],
+                       type: SEGMENT_TYPE.deep_curve } );
     steps.push( 0.005 );
-
-    // Steps.push(0.01);
 
     C1 = Point( 50 + diff, 100 );
     C2 = Point( 50 + diff, 100 );
     C3 = Point( 30 + diff, 10 + diff );
     C4 = Point( 102, 10 + diff );
-    paths[ p ].push( { f: getCubicBezier, args: [ C1, C2, C3, C4 ] } );
+    paths[ p ].push( { f: getCubicBezier,
+                       args: [ C1, C2, C3, C4 ],
+                       type: SEGMENT_TYPE.curve } );
     steps.push( 0.02 );
-
-    // Steps.push(0.01);
 }
 
 function drawPath( ctx, path ) {
@@ -87,16 +183,6 @@ function drawPaths( ctx ) {
     }
 }
 
-window.onload = function() {
-    createVars();
-    var c = document.getElementById( "canvas" );
-    var ctx = c.getContext( "2d" );
-    for ( var i = 0; i < nbrCars; i++ ) {
-        createPath( i );
-    }
-    drawPaths( ctx );
-};
-
 var move_cars = function() {
     var c = document.getElementById( "canvas" );
     var ctx = c.getContext( "2d" );
@@ -118,23 +204,63 @@ var drawCarAt = function( ctx, car, x, y ) {
     ctx.stroke();
 };
 
-var moveCar = function( ctx, carIdx ) {
-    var speed = Math.floor( Math.random() * cars[ carIdx ].spec.speed ) + 1;
-    var step = steps[ cars[ carIdx ].segment ];
+var moveCar = function( ctx, car_idx ) {
+    var car = cars[ car_idx ];
+    var segmentType = car.segment;
+    var segmentSpeed = getSegmentSpeed( segmentType, car.spec );
+    var speed = Math.floor( Math.random() *  segmentSpeed ) + 1;
+    var step = steps[ car.segment ];
     var nbrSegments = steps.length;
-    cars[ carIdx ].t += step * speed;
-    if ( cars[ carIdx ].t > 1 ) {
-        cars[ carIdx ].segment++;
-        if ( cars[ carIdx ].segment === nbrSegments ) {
-            cars[ carIdx ].segment = 0;
-            cars[ carIdx ].lap++;
+    car.t += step * speed;
+    if ( car.t > 1.0 ) {
+        car.segment++;
+        if ( car.segment === nbrSegments ) {
+            car.segment = 0;
+            car.lap++;
         }
-        cars[ carIdx ].t -= 1.0;
-
-        // Cars[carIdx].t = 0;
+        car.t -= 1.0;
     }
-    var pos = getPositionInPath( paths[ carIdx ], cars[ carIdx ].segment, cars[ carIdx ].t );
-    drawCarAt( ctx, cars[ carIdx ], pos.x, pos.y );
+    var pos = getPositionInPath( paths[ car_idx ], car.segment, car.t );
+    drawCarAt( ctx, car, pos.x, pos.y );
 };
 
-setInterval( move_cars, 200 );
+function simpleCourse() {
+    createVars();
+    var c = document.getElementById( "canvas" );
+    var ctx = c.getContext( "2d" );
+    for ( var i = 0; i < nbrCars; i++ ) {
+        createPath( i );
+    }
+    drawPaths( ctx );
+
+    setInterval( move_cars, 200 );
+}
+
+window.onload = function() {
+
+    // SimpleCourse();
+
+    var c = document.getElementById( "canvas" );
+    var ctx = c.getContext( "2d" );
+
+    // Full_line(ctx, [Point(0, 0), Point(50, 0)]);
+    // fullCurve(ctx, [Point(50, 0), Point(100, 0), Point(100, 50)]);
+    // fullCurve(ctx, [Point(100, 50), Point(100, 100), Point(150, 100)]);
+    // fullCurve(ctx, [Point(150, 100), Point(200, 100), Point(200, 50)]);
+    // ctx.moveTo(50, 0);
+    // var p = getCuadraticBezier(0.5, Point(50, 0), Point(100, 0), Point(100, 50));
+    // fullCurve(ctx, [Point(50, 0), Point(75, 0), p]);
+
+    // Var nextP = halfCurve(ctx, [Point(50, 0), Point(100, 0), Point(100, 50)]);
+    // var endP = Point(nextP.x + 50, nextP.y);
+    // var result = rotate([nextP, endP], 45);
+    // nextP = drawLineWithTwoPoints(ctx, result);
+    // endP = Point(nextP.x + 50, nextP.y);
+    // result = rotate([nextP, endP], 90);
+    // nextP = drawLineWithTwoPoints(ctx, result);
+
+    // drawLine( ctx, Point( 0, 0 ), 100, 45 );
+    drawLine( ctx, Point( 0, 0 ), 50 );
+    drawCurve( ctx, Point( 50, 0 ), Point( 100, 0 ), Point( 100, 50 ), 50 );
+    ctx.stroke();
+};
