@@ -4,12 +4,24 @@ function Point( x, y ) {
     return { x: x, y: y };
 }
 
+function pointAdd( p1, p2 ) {
+    var x = p1.x + p2.x;
+    var y = p1.x + p2.x;
+    return Point( x, y );
+}
+
+function pointSub( p1, p2 ) {
+    var x = p1.x - p2.x;
+    var y = p1.x - p2.x;
+    return Point( x, y );
+}
+
 function drawBezier( ctx, bezier, points, resolution ) {
     if ( !resolution ) resolution = 0.01;
     var next;
     var args = points.slice();
     args.unshift( 0 );
-    for ( var x = 0.0; x <= 1.0; x += resolution ) {
+    for ( var x = 0.0; x <= 1.00001; x += resolution ) {
         args[ 0 ] = x;
         next = bezier.apply( null, args );
         ctx.lineTo( next.x, next.y );
