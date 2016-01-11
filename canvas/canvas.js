@@ -10,6 +10,9 @@ var specs = [ { speed_s: 6, speed_c: 1, speed_d: 6 },
               { speed_s: 4, speed_c: 6, speed_d: 5 } ];
 
 var LINE_LEN = 100.0;
+var CURVE = { FULL: 100, HALF: 50, QUARTER: 25 };
+var SHARP = { X: 'x', Y: 'y' };
+var UNIFIED_LENGTH = 5.0;
 
 function rotate( points, angle ) {
     var x = points[ 1 ].x - points[ 0 ].x;
@@ -33,26 +36,25 @@ function move( points, origin_p, dest_p ) {
     return movePoints;
 }
 
-function getPointsFromLine( start_p, length, angle ) {
+function getStepsFromLength( length ) {
+    var steps = length / UNIFIED_LENGTH;
+    return Math.round( steps );
+}
+
+function getPointsFromLine( start_p, end_p, length, angle ) {
     if ( !angle ) angle = 0;
-    var endP = Point( start_p.x + length, start_p.y );
-    var rotPair = rotate( [ start_p, endP ], angle );
+    if ( !end_p ) end_p = Point( start_p.x + length, start_p.y );
+    var rotPair = rotate( [ start_p, end_p ], angle );
     return [ start_p, rotPair[ 1 ] ];
 }
 
-function drawLineWithTwoPoints( ctx, start_p, end_p, resolution ) {
-    ctx.moveTo( start_p.x, start_p.y );
-    drawLineBezier( ctx, start_p, end_p, resolution );
-    return end_p;
-}
-
-function drawLine( ctx, start_p, length, angle, resolution ) {
-    // if ( !angle ) angle = 0;
-    // var endP = Point( start_p.x + length, start_p.y );
-    // var rotPair = rotate( [ start_p, endP ], angle );
-    // return drawLineWithTwoPoints( ctx, start_p, rotPair[ 1 ], resolution );
-    var points = getPointsFromLine( start_p, length, angle );
-    return drawLineWithTwoPoints( ctx, points[ 0 ], points[ 1 ], resolution );
+function drawLine( ctx, start_p, end_p, length, angle, resolution ) {
+    var points = getPointsFromLine( start_p, end_p, length, angle );
+    var startP = points[ 0 ];
+    var endP = points[ 1 ];
+    ctx.moveTo( startP.x, startP.y );
+    drawLineBezier( ctx, startP, endP, resolution );
+    return endP;
 }
 
 function drawBox( ctx, start_p, length, angle, wide, resolution ) {
@@ -95,26 +97,6 @@ function getPointsFromCurve( start_p, ctrl_p, end_p, percent ) {
 }
 
 function drawCurve( ctx, start_p, ctrl_p, end_p, percent, resolution ) {
-    // if ( percent === undefined ) percent = 100;
-    // var percentV = percent / 100;
-    // var mid, midP, endP;
-    // if ( percentV < 1 ) {
-    //     if ( start_p.y === ctrl_p.y ) {
-    //         mid = start_p.x + ( end_p.x - start_p.x ) * percentV;
-    //         midP = Point( mid, start_p.y );
-    //     } else if ( start_p.x === ctrl_p.x ) {
-    //         mid = start_p.y + ( end_p.y - start_p.y ) * percentV;
-    //         midP = Point( start_p.x, mid );
-    //     } else {
-    //         return undefined;
-    //     }
-    //     endP = getCuadraticBezier( percentV, start_p, ctrl_p, end_p );
-    // } else {
-    //     midP = ctrl_p;
-    //     endP = end_p;
-    // }
-    // ctx.moveTo( start_p.x, start_p.y );
-    // drawCuadraticBezier( ctx, start_p, midP, endP, resolution );
     ctx.moveTo( start_p.x, start_p.y );
     var points = getPointsFromCurve( start_p, ctrl_p, end_p, percent );
     drawCuadraticBezier( ctx, points[ 0 ], points[ 1 ], points[ 2 ], resolution );
@@ -123,7 +105,7 @@ function drawCurve( ctx, start_p, ctrl_p, end_p, percent, resolution ) {
 
 function getPointsFromSharpCurve( start_p, end_p, side, sharpness ) {
     var mid, midP, endP;
-    if ( side === "x" ) {
+    if ( side === SHARP.X ) {
         if ( !end_p ) {
             mid = start_p.y + ( start_p.x ) / 2;
             endP = Point( start_p.x, start_p.y + start_p.x );
@@ -132,7 +114,7 @@ function getPointsFromSharpCurve( start_p, end_p, side, sharpness ) {
             endP = end_p;
         }
         midP = Point( start_p.x + sharpness, mid );
-    } else if ( side === "y" ) {
+    } else if ( side === SHARP.Y ) {
         if ( !end_p ) {
             mid = start_p.x + ( start_p.y ) / 2;
             endP = Point( start_p.x + start_p.y, start_p.y );
@@ -148,184 +130,298 @@ function getPointsFromSharpCurve( start_p, end_p, side, sharpness ) {
 }
 
 function drawSharpCurve( ctx, start_p, end_p, side, sharpness, resolution ) {
-    // var mid, midP, endP;
-    // if ( side === "x" ) {
-    //     if ( !end_p ) {
-    //         mid = start_p.y + ( start_p.x ) / 2;
-    //         endP = Point( start_p.x, start_p.y + start_p.x );
-    //     } else {
-    //         mid = start_p.y + ( end_p.y - start_p.y ) / 2;
-    //         endP = end_p;
-    //     }
-    //     midP = Point( start_p.x + sharpness, mid );
-    // } else if ( side === "y" ) {
-    //     if ( !end_p ) {
-    //         mid = start_p.x + ( start_p.y ) / 2;
-    //         endP = Point( start_p.x + start_p.y, start_p.y );
-    //     } else {
-    //         mid = start_p.x + ( end_p.x - start_p.x ) / 2;
-    //         endP = end_p;
-    //     }
-    //     midP = Point( mid, start_p.y + sharpness );
-    // } else {
-    //     return undefined;
-    // }
-    // ctx.moveTo( start_p.x, start_p.y );
-    // drawCuadraticBezier( ctx, start_p, midP, endP, resolution );
     ctx.moveTo( start_p.x, start_p.y );
     var points = getPointsFromSharpCurve( start_p, end_p, side, sharpness );
     drawCuadraticBezier( ctx, points[ 0 ], points[ 1 ], points[ 2 ], resolution );
     return points[ 2 ];
 }
 
-function st( start_p, angle ) {
+function st( start_p, end_p, length, angle ) {
     this.startP = start_p;
+    if ( end_p ) {
+        this.endP = end_p;
+    } else {
+        this.endP = Point( start_p.x + length, start_p.y );
+    }
     this.angle = angle;
 
+    this.resetTo = function( start_p ) {
+        if ( start_p  && this.startP ) {
+            var movePoints = move( [ this.endP ], this.startP, start_p );
+            this.startP = start_p;
+            this.endP = movePoints[ 0 ];
+        } else if ( start_p ) {
+            this.startP = start_p;
+        }
+    };
+
     this.draw = function( ctx, resolution ) {
-        return drawLine( ctx, this.start_p, LINE_LEN, this.angle, resolution );
+        return drawLine( ctx, this.startP, this.endP, undefined, this.angle, resolution );
     };
 
     this.path = function() {
-        return { f: getlinearBezier,
-                 args: getPointsFromLine(this.start_p, LINE_LEN, this.angle),
-                 type: SEGMENT_TYPE.straight };
+        return { f: getLineBezier,
+                 args: getPointsFromLine( this.startP, this.endP, undefined, this.angle ),
+                 type: SEGMENT_TYPE.straight,
+                 steps: getStepsFromLength( this.length() ) };
+    };
+
+    this.getStart = function() {
+        return this.startP;
+    };
+
+    this.getEnd = function() {
+         var points = getPointsFromLine( this.startP, this.endP, undefined, this.angle );
+         return points[ 1 ];
+    };
+
+    this.length = function() {
+        var points = getPointsFromLine( this.startP, this.endP, undefined, this.angle );
+        return bezierLength( getLineBezier, points );
     };
 }
 
-function st1( ctx, start_p, angle, resolution ) {
-    return drawLine( ctx, start_p, LINE_LEN, angle, resolution );
+function cv( start_p, ctrl_p, end_p, percentage ) {
+    this.startP = start_p;
+    this.ctrlP = ctrl_p;
+    this.endP = end_p;
+    this.percentage = percentage;
+
+    this.resetTo = function( start_p ) {
+        if ( start_p  ) {
+            var movePoints = move( [ this.ctrlP, this.endP ], this.startP, start_p );
+            this.startP = start_p;
+            this.ctrlP = movePoints[ 0 ];
+            this.endP = movePoints[ 1 ];
+        }
+    };
+
+    this.draw = function( ctx, resolution ) {
+        return drawCurve( ctx, this.startP, this.ctrlP, this.endP, this.percentage, resolution );
+    };
+
+    this.path = function() {
+        return { f: getCuadraticBezier,
+                 args: getPointsFromCurve( this.startP, this.ctrlP, this.endP, this.percentage ),
+                 type: SEGMENT_TYPE.curve,
+                 steps: getStepsFromLength( this.length() ) };
+    };
+
+    this.getStart = function() {
+        return this.startP;
+    };
+
+    this.getEnd = function() {
+        var points = getPointsFromCurve( this.startP, this.ctrlP, this.endP, this.percentage );
+        return points[ 2 ];
+    };
+
+    this.length = function() {
+        var points = getPointsFromCurve( this.startP, this.ctrlP, this.endP, this.percentage );
+        return bezierLength( getCuadraticBezier, points );
+    };
 }
 
-function st2( ctx, start_p, angle, resolution ) {
-    return drawLine( ctx, start_p, LINE_LEN / 2, angle, resolution );
+function sh( start_p, end_p, side, sharpness ) {
+    this.startP = start_p;
+    this.endP = end_p;
+    this.side = side;
+    this.sharpness = sharpness;
+
+    this.resetTo = function( start_p ) {
+        if ( start_p  ) {
+            var movePoints = move( [ this.endP ], this.startP, start_p );
+            this.startP = start_p;
+            this.endP = movePoints[ 0 ];
+        }
+    };
+
+    this.draw = function( ctx, resolution ) {
+        return drawSharpCurve( ctx, this.startP, this.endP, this.side, this.sharpness, resolution );
+    };
+
+    this.path = function() {
+        return { f: getCuadraticBezier,
+                 args: getPointsFromSharpCurve( this.startP, this.endP, this.side, this.sharpness ),
+                 type: SEGMENT_TYPE.sharp_curve,
+                 steps: getStepsFromLength( this.length() ) };
+    };
+
+    this.getStart = function() {
+        return this.startP;
+    };
+
+    this.getEnd = function() {
+        var points = getPointsFromSharpCurve( this.startP, this.endP, this.side, this.sharpness );
+        return points[ 2 ];
+    };
+
+    this.length = function() {
+        var points = getPointsFromSharpCurve( this.startP, this.endP, this.side, this.sharpness );
+        return bezierLength( getCuadraticBezier, points );
+    };
 }
 
-function st4( ctx, start_p, angle, resolution ) {
-    return drawLine( ctx, start_p, LINE_LEN / 4, angle, resolution );
-}
+// function st1( ctx, start_p, angle, resolution ) {
+//     return drawLine( ctx, start_p, undefined, LINE_LEN, angle, resolution );
+// }
 
-function cv1( ctx, start_p, ctrl_p, end_p, resolution ) {
-    return drawCurve( ctx, start_p, ctrl_p, end_p, 100, resolution );
-}
+// function st2( ctx, start_p, angle, resolution ) {
+//     return drawLine( ctx, start_p, undefined, LINE_LEN / 2, angle, resolution );
+// }
 
-function cv2( ctx, start_p, ctrl_p, end_p, resolution ) {
-    return drawCurve( ctx, start_p, ctrl_p, end_p, 50, resolution );
-}
+// function st4( ctx, start_p, angle, resolution ) {
+//     return drawLine( ctx, start_p, undefined, LINE_LEN / 4, angle, resolution );
+// }
 
-function cv4( ctx, start_p, ctrl_p, end_p, resolution ) {
-    return drawCurve( ctx, start_p, ctrl_p, end_p, 25, resolution );
-}
+// function cv1( ctx, start_p, ctrl_p, end_p, resolution ) {
+//     return drawCurve( ctx, start_p, ctrl_p, end_p, 100, resolution );
+// }
 
-function sh( ctx, start_p, end_p, side, sharpness, resolution ) {
-    return drawSharpCurve( ctx, start_p, end_p, side, sharpness, resolution );
-}
+// function cv2( ctx, start_p, ctrl_p, end_p, resolution ) {
+//     return drawCurve( ctx, start_p, ctrl_p, end_p, 50, resolution );
+// }
 
-function sh1( ctx, start_p, end_p, side, sharpness, resolution ) {
-    return drawSharpCurve( ctx, start_p, end_p, side, start_p.x, resolution );
-}
+// function cv4( ctx, start_p, ctrl_p, end_p, resolution ) {
+//     return drawCurve( ctx, start_p, ctrl_p, end_p, 25, resolution );
+// }
 
-function sh2( ctx, start_p, end_p, side, sharpness, resolution ) {
-    return drawSharpCurve( ctx, start_p, end_p, side, start_p.x * 2, resolution );
-}
+// function sh( ctx, start_p, end_p, side, sharpness, resolution ) {
+//     return drawSharpCurve( ctx, start_p, end_p, side, sharpness, resolution );
+// }
 
-function sh4( ctx, start_p, end_p, side, sharpness, resolution ) {
-    return drawSharpCurve( ctx, start_p, end_p, side, start_p.x * 4, resolution );
-}
+// function sh1( ctx, start_p, end_p, side, sharpness, resolution ) {
+//     return drawSharpCurve( ctx, start_p, end_p, side, start_p.x, resolution );
+// }
 
-function Piece( piece_f ) {
-    this.piece = undefined;
+// function sh2( ctx, start_p, end_p, side, sharpness, resolution ) {
+//     return drawSharpCurve( ctx, start_p, end_p, side, start_p.x * 2, resolution );
+// }
 
-    this.getStart = function() { throw "Undefined method"; };
+// function sh4( ctx, start_p, end_p, side, sharpness, resolution ) {
+//     return drawSharpCurve( ctx, start_p, end_p, side, start_p.x * 4, resolution );
+// }
 
-    this.build = function( ctx, start_p, resolution ) {
-        if ( start_p === undefined ) start_p = this.getStart();
+function Piece( piece ) {
+    this.piece = piece;
+
+    this.resetTo = function( start_p ) {
+        return this.piece.resetTo( start_p );
+    };
+
+    this.build = function( ctx, resolution ) {
         return this.piece.draw( ctx, resolution );
     };
 
     this.path = function() {
         return this.piece.path();
     };
-}
-
-function PieceS( piece_f, start_p, angle ) {
-    Piece.call( this, piece_f );
-
-    this.piece = new piece_f( start_p, angle );
-    this.data = { startP: start_p, angle: angle };
-
-    this.getStart = function() { return this.data.startP; };
-}
-PieceS.prototype = new Piece();
-PieceS.prototype.constructor = PieceS;
-
-function PieceSt( piece_f, start_p, angle ) {
-    this.pieceF = piece_f;
-    this.data = { startP: start_p, angle: angle };
-
-    this.build = function( ctx, start_p, resolution ) {
-        if ( start_p === undefined ) start_p = this.data.startP;
-        return this.pieceF( ctx, start_p, this.data.angle, resolution );
-    };
 
     this.getStart = function() {
-        return this.data.startP;
+        return this.piece.getStart();
+    };
+
+    this.getEnd = function() {
+        return this.piece.getEnd();
+    };
+
+    this.length = function() {
+        return this.piece.length();
     };
 }
 
-function PieceCv( piece_f, start_p, ctrl_p, end_p ) {
-    this.pieceF = piece_f;
-    this.data = { startP: start_p, ctrlP: ctrl_p, endP: end_p };
-
-    this.build = function( ctx, start_p, resolution ) {
-        var startP;
-        var ctrlP = this.data.ctrlP;
-        var  endP = this.data.endP;
-        if ( start_p === undefined ) {
-            startP = this.data.startP;
-        } else {
-            startP = start_p;
-            var movePoints = move( [ ctrlP, endP ], this.data.startP, start_p );
-            ctrlP = movePoints[ 0 ];
-            endP = movePoints[ 1 ];
-        }
-        return this.pieceF( ctx, startP, ctrlP, endP, resolution );
-    };
-
-    this.getStart = function() {
-        return this.data.startP;
-    };
+function PieceStraight( start_p, end_p, length, angle ) {
+    Piece.call( this, new st( start_p, end_p, length, angle ) );
 }
+PieceStraight.prototype = new Piece();
+PieceStraight.prototype.constructor = PieceStraight;
 
-function PieceSh( piece_f, start_p, end_p, side, sharpness ) {
-    this.pieceF = piece_f;
-    this.data = { startP: start_p, endP: end_p, side: side, sharpness: sharpness };
-
-    this.build = function( ctx, start_p, resolution ) {
-        var startP;
-        var  endP = this.data.endP;
-        if ( start_p === undefined ) {
-            startP = this.data.startP;
-        } else {
-            startP = start_p;
-            var movePoints = move( [ endP ], this.data.startP, start_p );
-            endP = movePoints[ 0 ];
-        }
-        return this.pieceF( ctx, startP, endP, this.data.side, sharpness, resolution );
-    };
-
-    this.getStart = function() {
-        return this.data.startP;
-    };
+function PieceCurve( start_p, ctrl_p, end_p, percentage ) {
+    Piece.call( this, new cv( start_p, ctrl_p, end_p, percentage ) );
 }
+PieceCurve.prototype = new Piece();
+PieceCurve.prototype.constructor = PieceCurve;
+
+function PieceSharpCurve( start_p, end_p, side, sharpness ) {
+    Piece.call( this, new sh( start_p, end_p, side, sharpness ) );
+}
+PieceSharpCurve.prototype = new Piece();
+PieceSharpCurve.prototype.constructor = PieceSharpCurve;
 
 function PieceClose( end_p ) {
-    this.data = { endP: end_p };
-
-    this.build = function ( ctx, start_p, resolution ) {
-        drawLineWithTwoPoints( ctx, start_p, this.data.endP, resolution );
-    };
+    Piece.call( this, new st( undefined, end_p ) );
 }
+PieceClose.prototype = new Piece();
+PieceClose.prototype.constructor = PieceClose;
+
+
+// function PieceSt( piece_f, start_p, angle ) {
+//     this.pieceF = piece_f;
+//     this.data = { startP: start_p, angle: angle };
+
+//     this.build = function( ctx, start_p, resolution ) {
+//         if ( start_p === undefined ) start_p = this.data.startP;
+//         return this.pieceF( ctx, start_p, this.data.angle, resolution );
+//     };
+
+//     this.getStart = function() {
+//         return this.data.startP;
+//     };
+// }
+
+// function PieceCv( piece_f, start_p, ctrl_p, end_p ) {
+//     this.pieceF = piece_f;
+//     this.data = { startP: start_p, ctrlP: ctrl_p, endP: end_p };
+
+//     this.build = function( ctx, start_p, resolution ) {
+//         var startP;
+//         var ctrlP = this.data.ctrlP;
+//         var  endP = this.data.endP;
+//         if ( start_p === undefined ) {
+//             startP = this.data.startP;
+//         } else {
+//             startP = start_p;
+//             var movePoints = move( [ ctrlP, endP ], this.data.startP, start_p );
+//             ctrlP = movePoints[ 0 ];
+//             endP = movePoints[ 1 ];
+//         }
+//         return this.pieceF( ctx, startP, ctrlP, endP, resolution );
+//     };
+
+//     this.getStart = function() {
+//         return this.data.startP;
+//     };
+// }
+
+// function PieceSh( piece_f, start_p, end_p, side, sharpness ) {
+//     this.pieceF = piece_f;
+//     this.data = { startP: start_p, endP: end_p, side: side, sharpness: sharpness };
+
+//     this.build = function( ctx, start_p, resolution ) {
+//         var startP;
+//         var  endP = this.data.endP;
+//         if ( start_p === undefined ) {
+//             startP = this.data.startP;
+//         } else {
+//             startP = start_p;
+//             var movePoints = move( [ endP ], this.data.startP, start_p );
+//             endP = movePoints[ 0 ];
+//         }
+//         return this.pieceF( ctx, startP, endP, this.data.side, sharpness, resolution );
+//     };
+
+//     this.getStart = function() {
+//         return this.data.startP;
+//     };
+// }
+
+// function PieceClose( end_p ) {
+//     this.data = { endP: end_p };
+
+//     this.build = function ( ctx, start_p, resolution ) {
+//         drawLine( ctx, start_p, this.data.endP, undefined, undefined, resolution );
+//     };
+// }
 
 function Composition( ctx, resolution ) {
     this.ctx = ctx;
@@ -333,6 +429,7 @@ function Composition( ctx, resolution ) {
     this.startP = undefined;
     this.attachP = undefined;
     this.pieces = [];
+    this.path = [];
 
     this.attach = function( next_piece ) {
         if ( !this.startP ) this.startP = next_piece.getStart();
@@ -347,25 +444,37 @@ function Composition( ctx, resolution ) {
         this.attach ( new PieceClose( this.startP ) );
     };
 
-    this.build = function() {
+    this.buildPath = function() {
         for ( var p_i in this.pieces ) {
             var piece = this.pieces[ p_i ];
-            this.attachP = piece.build( this.ctx, this.attachP, this.resolution );
+            piece.resetTo( this.attachP );
+            this.attachP = piece.getEnd();
+            this.path.push( piece.path() );
         }
+    };
+
+    this.buildDraw = function() {
+        this.ctx.beginPath();
+        ctx.strokeStyle = "black";
+        for ( var p_i in this.pieces ) {
+            var piece = this.pieces[ p_i ];
+            this.attachP = piece.build( this.ctx, this.resolution );
+        }
+        this.ctx.stroke();
     };
 }
 
-function fullCurve( ctx, points, resolution ) {
-    drawCuadraticBezier( ctx, points[ 0 ], points[ 1 ], points[ 2 ], resolution );
-    return points[ 2 ];
-}
+// function fullCurve( ctx, points, resolution ) {
+//     drawCuadraticBezier( ctx, points[ 0 ], points[ 1 ], points[ 2 ], resolution );
+//     return points[ 2 ];
+// }
 
-function halfCurve( ctx, points, resolution ) {
-    var mid = points[ 0 ].x + Math.abs( points[ 0 ].x - points[ 1 ].x ) / 2;
-    var midP = Point( mid, points[ 0 ].y );
-    var endP = getCuadraticBezier( 0.5, points[ 0 ], points[ 1 ], points[ 2 ] );
-    return fullCurve( ctx, [ points[ 0 ], midP, endP ], resolution );
-}
+// function halfCurve( ctx, points, resolution ) {
+//     var mid = points[ 0 ].x + Math.abs( points[ 0 ].x - points[ 1 ].x ) / 2;
+//     var midP = Point( mid, points[ 0 ].y );
+//     var endP = getCuadraticBezier( 0.5, points[ 0 ], points[ 1 ], points[ 2 ] );
+//     return fullCurve( ctx, [ points[ 0 ], midP, endP ], resolution );
+// }
 
 function getSegmentSpeed( segment_type, spec ) {
     var segmentSpeed = 0;
@@ -502,6 +611,24 @@ var moveCar = function( ctx, car_idx ) {
     drawCarAt( ctx, car, pos.x, pos.y );
 };
 
+function moveCarInCourse( ctx, car, course ) {
+    var segmentType = car.segment;
+    var segmentSpeed = getSegmentSpeed( segmentType, car.spec );
+    var speed = Math.floor( Math.random() * segmentSpeed ) + 1;
+    var steps = course.path[ car.segment ].steps;
+    car.t += speed / steps;
+    if ( car.t > 1.0 ) {
+        car.segment++;
+        if ( car.segment === course.path.length ) {
+            car.segment = 0;
+            car.lap++;
+        }
+        car.t -= 1.0;
+    }
+    var pos = getPositionInPath( course.path, car.segment, car.t );
+    drawCarAt( ctx, car, pos.x, pos.y );
+}
+
 function simpleCourse( ctx ) {
     createVars();
     for ( var i = 0; i < nbrCars; i++ ) {
@@ -513,25 +640,7 @@ function simpleCourse( ctx ) {
 }
 
 function buildWithApi( ctx ) {
-
-    // full_line(ctx, [Point(0, 0), Point(50, 0)]);
-    // fullCurve(ctx, [Point(50, 0), Point(100, 0), Point(100, 50)]);
-    // fullCurve(ctx, [Point(100, 50), Point(100, 100), Point(150, 100)]);
-    // fullCurve(ctx, [Point(150, 100), Point(200, 100), Point(200, 50)]);
-    // ctx.moveTo(50, 0);
-    // var p = getCuadraticBezier(0.5, Point(50, 0), Point(100, 0), Point(100, 50));
-    // fullCurve(ctx, [Point(50, 0), Point(75, 0), p]);
-
-    // var nextP = halfCurve(ctx, [Point(50, 0), Point(100, 0), Point(100, 50)]);
-    // var endP = Point(nextP.x + 50, nextP.y);
-    // var result = rotate([nextP, endP], 45);
-    // nextP = drawLineWithTwoPoints(ctx, result[0], result[1]);
-    // endP = Point(nextP.x + 50, nextP.y);
-    // result = rotate([nextP, endP], 90);
-    // nextP = drawLineWithTwoPoints(ctx, result[0], result[1]);
-
-    // drawLine( ctx, Point( 0, 0 ), 100, 45 );
-    drawLine( ctx, Point( 0, 0 ), 50 );
+    drawLine( ctx, Point( 0, 0 ), undefined, 50 );
     drawCurve( ctx, Point( 50, 0 ), Point( 100, 0 ), Point( 100, 50 ), 50 );
 }
 
@@ -547,12 +656,6 @@ function buildWithPieces( ctx ) {
 function buildWithBlocks( ctx ) {
     drawBox( ctx, Point( 50, 50 ), 50 );
 
-    // drawBox( ctx, Point( 50, 50 ), 50, 15 );
-    // drawBox( ctx, Point( 50, 50 ), 50, 30 );
-    // drawBox( ctx, Point( 50, 50 ), 50, 45 );
-    // drawBox( ctx, Point( 50, 50 ), 50, 60 );
-    // drawBox( ctx, Point( 50, 50 ), 50, 75 );
-    // drawBox( ctx, Point( 50, 50 ), 50, 90 );
     drawBox( ctx, Point( 100, 50 ), 50, 15 );
     drawBox( ctx, Point( 150, 50 ), 50, 30 );
     drawBox( ctx, Point( 200, 50 ), 50, 45 );
@@ -562,7 +665,6 @@ function buildWithBlocks( ctx ) {
 }
 
 function buildSharpCurve( ctx ) {
-
     // DrawSharpCurve( ctx, Point( 100, 0 ), 'x', 50 );
     sh1( ctx, Point( 150, 50 ), "x" );
     sh2( ctx, Point( 150, 50 ), "x" );
@@ -589,99 +691,66 @@ function buildLane( ctx, start_p, offset ) {
 }
 
 function buildFullCourse( ctx ) {
-    // var course = new Composition( ctx );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSh( sh, Point( 0, 0 ), Point( 0, 50 ), "x", 100 ) );
-    // course.attach( new PieceCv( cv2, Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ) ) );
-    // course.attach( new PieceSt( st4, Point( 100, 0 ), 135 ) );
-    // course.attach( new PieceSh( sh, Point( 50, 0 ), Point( 0, 0 ), "y", 100 ) );
-    // course.attach( new PieceCv( cv1, Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 180 ) );
-    // course.attach( new PieceSh( sh, Point( 0, 25 ), Point( 0, 0 ), "x", -75) );
-    // course.closePiece();
-    // course.build();
-
-    // var offset = 0;
-    // var course = new Composition( ctx );
-    // course.attach( new PieceSt( st1, Point( 200, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSh( sh, Point( 0, 0 ),
-    //                             Point( 0, 200 - 2*offset ), "x", 500 - 1.5*offset ) );
-    // course.attach( new PieceCv( cv2, Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 135 ) );
-    // course.attach( new PieceSh( sh, Point( 100, 0 ),
-    //                             Point( offset/2, 0 ), "y", 100 ) );
-    // course.attach( new PieceCv( cv1, Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 180 ) );
-    // course.attach( new PieceSh( sh, Point( 0, 230 ),
-    //                             Point( 0, 2*offset ), "x", -200 + 1.5*offset) );
-    // course.closePiece();
-    // course.build();
-
-    // offset += 10;
-    // course = new Composition( ctx );
-    // course.attach( new PieceSt( st1, Point( 200, offset ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSh( sh, Point( 0, 0 ),
-    //                             Point( 0, 200 - 2*offset ), "x", 500 - 1.5*offset ) );
-    // course.attach( new PieceCv( cv2, Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 135 ) );
-    // course.attach( new PieceSh( sh, Point( 100, 0 ),
-    //                             Point( offset/2, 0 ), "y", 100 ) );
-    // course.attach( new PieceCv( cv1, Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 180 ) );
-    // course.attach( new PieceSh( sh, Point( 0, 230 ),
-    //                             Point( 0, 2*offset ), "x", -200 + 1.5*offset) );
-    // course.closePiece();
-    // course.build();
-
-    // offset += 10;
-    // course = new Composition( ctx );
-    // course.attach( new PieceSt( st1, Point( 200, offset ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSh( sh, Point( 0, 0 ),
-    //                             Point( 0, 200 - 2*offset ), "x", 500 - 1.5*offset ) );
-    // course.attach( new PieceCv( cv2, Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 135 ) );
-    // course.attach( new PieceSh( sh, Point( 100, 0 ),
-    //                             Point( offset/2, 0 ), "y", 100 ) );
-    // course.attach( new PieceCv( cv1, Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 180 ) );
-    // course.attach( new PieceSh( sh, Point( 0, 230 ),
-    //                             Point( 0, 2*offset ), "x", -200 + 1.5*offset) );
-    // course.closePiece();
-    // course.build();
-
-    // offset += 10;
-    // course = new Composition( ctx );
-    // course.attach( new PieceSt( st1, Point( 200, offset ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ) ) );
-    // course.attach( new PieceSh( sh, Point( 0, 0 ),
-    //                             Point( 0, 200 - 2*offset ), "x", 500 - 1.5*offset ) );
-    // course.attach( new PieceCv( cv2, Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 135 ) );
-    // course.attach( new PieceSh( sh, Point( 100, 0 ),
-    //                             Point( offset/2, 0 ), "y", 100 ) );
-    // course.attach( new PieceCv( cv1, Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-    // course.attach( new PieceSt( st1, Point( 100, 0 ), 180 ) );
-    // course.attach( new PieceSh( sh, Point( 0, 230 ),
-    //                             Point( 0, 2*offset ), "x", -200 + 1.5*offset) );
-    // course.closePiece();
-    // course.build();
-
     var offsets = [ 0, 10, 20, 30 ];
     for ( var x = 0; x <  offsets.length; x++ ) {
         buildLane(ctx, Point( 200, offsets[ x ] ), offsets[ x ] );
     }
 }
 
-window.onload = function() {
+function buildFullCoursePath( ctx ) {
+    var offsets = [ 10, 20, 30, 40 ];
+    var courses = [];
 
+    for ( var i = 0; i < nbrCars; i++ ) {
+        cars.push( { segment: 0,
+                     t: 0.0,
+                     color: colors[ i ],
+                     lap: 0,
+                     spec: specs[ i ] } );
+    }
+
+    for ( var x = 0; x <  offsets.length; x++ ) {
+        var offset = offsets[ x ];
+        var course = new Composition( ctx );
+        course.attach( new PieceStraight( Point( 200, offset ), null, 300 ) );
+        course.attach( new PieceSharpCurve( Point( 0, 0 ), Point( 0, 200 - 2*offset ),
+                                            SHARP.X, 500 - 1.5*offset ) );
+        course.attach( new PieceCurve( Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ), CURVE.HALF ) );
+        course.attach( new PieceStraight( Point( 0, 0 ), null, 100, 135 ) );
+        course.attach( new PieceSharpCurve( Point( 100, 0 ), Point( offset/2, 0 ),
+                                            SHARP.Y, 100 ) );
+        course.attach( new PieceCurve( Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
+        course.attach( new PieceStraight( Point( 0, 0 ), null, 100, 180 ) );
+        course.attach( new PieceSharpCurve( Point( 0, 230 ), Point( 0, 2*offset ),
+                                            SHARP.X, -200 + 1.5*offset) );
+        course.closePiece();
+        course.buildPath();
+        // course.buildDraw();
+        courses.push( course );
+        console.log( course.path );
+    }
+
+    for ( var c in courses ) {
+        courses[ c ].buildDraw();
+    }
+
+    setInterval( function() {
+        ctx.clearRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
+        for ( var c_i in courses ) {
+            var course = courses[ c_i ];
+            course.ctx = ctx;
+            course.buildDraw();
+        }
+        var msg = "";
+        for ( var i = 0; i < nbrCars; i++ ) {
+            moveCarInCourse( ctx, cars[ i ], courses[ i ] );
+            msg += "car " + ( i + 1 ) + " [" + cars[ i ].lap + "]\n";
+        }
+        setRaceInfo( msg );
+    }, 200 );
+}
+
+window.onload = function() {
     var c = document.getElementById( "canvas" );
     var ctx = c.getContext( "2d" );
 
@@ -695,7 +764,9 @@ window.onload = function() {
 
     // buildSharpCurve( ctx );
 
-    buildFullCourse( ctx );
+    // buildFullCourse( ctx );
+
+    buildFullCoursePath( ctx );
 
     ctx.stroke();
 };

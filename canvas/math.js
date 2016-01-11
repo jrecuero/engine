@@ -1,3 +1,5 @@
+var RESOLUTION_DEFAULT = 0.01;
+
 function Point( x, y ) {
     if ( !x ) x = 0;
     if ( !y ) y = 0;
@@ -16,8 +18,32 @@ function pointSub( p1, p2 ) {
     return Point( x, y );
 }
 
+function pointDistance( p1, p2 ) {
+    var x2 = ( p2.x - p1.x ) * ( p2.x - p1.x );
+    var y2 = ( p2.y - p1.y ) * ( p2.y - p1.y );
+    var distance = Math.sqrt( x2 + y2 );
+    return distance;
+}
+
+function bezierLength( bezier, points, resolution ) {
+    if ( !resolution ) resolution = RESOLUTION_DEFAULT;
+    var next, prev;
+    var length = 0.0;
+    var args = points.slice();
+    args.unshift( 0 );
+    for ( var x = 0.0; x <= 1.00001; x += resolution ) {
+        args[ 0 ] = x;
+        next = bezier.apply( null, args );
+        if ( prev ) {
+            length += pointDistance( next, prev );
+        }
+        prev = next;
+    }
+    return length;
+}
+
 function drawBezier( ctx, bezier, points, resolution ) {
-    if ( !resolution ) resolution = 0.01;
+    if ( !resolution ) resolution = RESOLUTION_DEFAULT;
     var next;
     var args = points.slice();
     args.unshift( 0 );
