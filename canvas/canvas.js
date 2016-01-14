@@ -6,11 +6,16 @@ var specs = [ { speed_s: 6, speed_c: 1, speed_d: 6 },
               { speed_s: 6, speed_c: 5, speed_d: 1 },
               { speed_s: 4, speed_c: 6, speed_d: 5 } ];
 
-function createVars( courses ) {
+function createVars( course ) {
+    var index = 0;
     for ( var i = 0; i < nbrCars; i++ ) {
-        cars.push( new Car( courses[ i ],
-                   specs[ i ],
-                   colors[ i ] ) );
+        cars.push( new Car( specs[ i ], colors[ i ] ) );
+        cars[ i ].lane = course.getLaneAt( index );
+        index++;
+        if ( index >= course.laneNbr ) {
+            index = 0;
+        }
+        cars[ i ].t = 0.1 * i;
     }
 }
 
@@ -21,40 +26,38 @@ function setRaceInfo( msg ) {
 
 function buildFullCoursePath( ctx ) {
     var offsets = [ 10, 20, 30, 40 ];
-    var courses = [];
+    // var offsets = [ 10, 20, 30 ];
+    var course = new Course( ctx );
 
     for ( var x = 0; x <  offsets.length; x++ ) {
         var offset = offsets[ x ];
-        var course = new Composition( ctx );
-        course.attach( new PieceStraight( Point( 200, offset ), null, 300 ) );
-        course.attach( new PieceSharpCurve( Point( 0, 0 ), Point( 0, 200 - 2*offset ),
+        var lane = new CourseLane( ctx );
+        lane.attach( new PieceStraight( Point( 200, offset ), null, 300 ) );
+        lane.attach( new PieceSharpCurve( Point( 0, 0 ), Point( 0, 200 - 2*offset ),
                                             SHARP.X, 500 - 1.5*offset ) );
-        course.attach( new PieceCurve( Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ), CURVE.HALF ) );
-        course.attach( new PieceStraight( Point( 0, 0 ), null, 100, 135 ) );
-        course.attach( new PieceSharpCurve( Point( 100, 0 ), Point( offset/2, 0 ),
+        lane.attach( new PieceCurve( Point( 50, 0 ), Point( 0, 0 ), Point( 0, 50 ), CURVE.HALF ) );
+        lane.attach( new PieceStraight( Point( 0, 0 ), null, 100, 135 ) );
+        lane.attach( new PieceSharpCurve( Point( 100, 0 ), Point( offset/2, 0 ),
                                             SHARP.Y, 100 ) );
-        course.attach( new PieceCurve( Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
-        course.attach( new PieceStraight( Point( 0, 0 ), null, 100, 180 ) );
-        course.attach( new PieceSharpCurve( Point( 0, 230 ), Point( 0, 2*offset ),
+        lane.attach( new PieceCurve( Point( 50, 50 ), Point( 50, 0 ), Point( 0, 0 ) ) );
+        lane.attach( new PieceStraight( Point( 0, 0 ), null, 100, 180 ) );
+        lane.attach( new PieceSharpCurve( Point( 0, 230 ), Point( 0, 2*offset ),
                                             SHARP.X, -200 + 1.5*offset) );
-        course.closePiece();
-        course.buildPath();
-        courses.push( course );
-        console.log( course.path );
+        lane.closePiece();
+        lane.buildPath();
+        course.addLane( lane );
     }
 
-    createVars( courses );
+    createVars( course );
 
-    for ( var c in courses ) {
-        courses[ c ].buildDraw();
-    }
+    course.draw();
 
     setInterval( function() {
         ctx.clearRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
-        for ( var c_i in courses ) {
-            var course = courses[ c_i ];
-            course.ctx = ctx;
-            course.buildDraw();
+        for ( var c_i = 0; c_i < course.laneNbr; c_i++ ) {
+            var lane = course.getLaneAt( c_i );
+            lane.ctx = ctx;
+            lane.buildDraw();
         }
         var msg = "";
         for ( var i = 0; i < nbrCars; i++ ) {

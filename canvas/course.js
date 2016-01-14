@@ -312,13 +312,26 @@ function PieceClose( end_p ) {
 PieceClose.prototype = new Piece();
 PieceClose.prototype.constructor = PieceClose;
 
-function Composition( ctx, resolution ) {
+function CourseLane( ctx, resolution ) {
     this.ctx = ctx;
     this.resolution = resolution;
     this.startP = undefined;
     this.attachP = undefined;
     this.pieces = [];
     this.path = [];
+    this.__car = undefined;
+
+    this.setCar = function( car ) {
+        this.__car = car;
+    };
+
+    Object.defineProperty( this, "car", {
+        get: function() { return this.__car; },
+        set: function( val) {
+            this.__car = val;
+            this.__car.setLane( this );
+        }
+    } );
 
     this.attach = function( next_piece ) {
         if ( !this.startP ) this.startP = next_piece.getStart();
@@ -353,13 +366,52 @@ function Composition( ctx, resolution ) {
     };
 }
 
-function Car( course, specs, color ) {
-    this.course = course;
+function Course( ctx ) {
+    this.ctx = ctx;
+    this.lanes = [];
+
+    Object.defineProperty(this, "laneNbr", {
+        get: function() { return this.lanes.length; }
+    } );
+
+    this.addLane = function( lane ) {
+        this.lanes.push( lane );
+        return ( this.laneNbr - 1 );
+    };
+
+    this.getLaneAt = function( index ) {
+        if ( index < this.laneNbr ) {
+            return this.lanes[ index ];
+        }
+        return undefined;
+    };
+
+    this.draw = function() {
+        for (var lane_i = 0; lane_i < this.laneNbr; lane_i++ ) {
+            this.lanes[ lane_i ].buildDraw();
+        }
+    };
+}
+
+function Car( specs, color ) {
+    this.__lane = undefined;
     this.segment = 0;
     this.t = 0.0;
     this.color = color ? color : "black";
     this.lap = 0;
     this.specs = specs;
+
+    this.setLane = function( lane ) {
+        this.__lane = lane;
+    };
+
+    Object.defineProperty(this, "lane", {
+        get: function() { return this.__lane; },
+        set: function( val ) {
+            this.__lane = val;
+            this.__lane.setCar( this );
+        }
+    } );
 
     this.draw = function( ctx, x, y ) {
         ctx.beginPath();
@@ -370,7 +422,7 @@ function Car( course, specs, color ) {
     };
 
     this.speed = function() {
-        var segmentType = this.course.path[ this.segment ].type;
+        var segmentType = this.lane.path[ this.segment ].type;
         var segmentSpeed = 0;
         if ( segmentType === SEGMENT_TYPE.straight ) {
             segmentSpeed = this.specs.speed_s;
@@ -383,22 +435,22 @@ function Car( course, specs, color ) {
     };
 
     this.newpos = function() {
-        var f = this.course.path[ this.segment ].f;
-        var args = this.course.path[ this.segment ].args.slice();
+        var f = this.lane.path[ this.segment ].f;
+        var args = this.lane.path[ this.segment ].args.slice();
         args.unshift( this.t );
         var pos = f.apply( null, args );
         return pos;
     };
 
     this.move = function() {
-        var segmentType = this.course.path[ this.segment ].type;
+        var segmentType = this.lane.path[ this.segment ].type;
         var segmentSpeed = this.speed();
         var speed = Math.floor( Math.random() * segmentSpeed ) + 1;
-        var steps = this.course.path[ this.segment ].steps;
+        var steps = this.lane.path[ this.segment ].steps;
         this.t += speed / steps;
         if ( this.t > 1.0 ) {
             this.segment++;
-            if ( this.segment === this.course.path.length ) {
+            if ( this.segment === this.lane.path.length ) {
                 this.segment = 0;
                 this.lap++;
             }
