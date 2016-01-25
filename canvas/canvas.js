@@ -56,7 +56,7 @@ function buildFullCoursePath( ctx ) {
         ctx.clearRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
         for ( var c_i = 0; c_i < course.laneNbr; c_i++ ) {
             var lane = course.getLaneAt( c_i );
-            lane.ctx = ctx;
+            // lane.ctx = ctx;
             lane.buildDraw();
         }
         var msg = "";

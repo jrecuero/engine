@@ -386,6 +386,10 @@ function Course( ctx ) {
         return undefined;
     };
 
+    this.clear = function() {
+        this.ctx.clearRect( 0, 0, this.ctx.canvas.width, this.ctx.canvas.height );
+    };
+
     this.draw = function() {
         for (var lane_i = 0; lane_i < this.laneNbr; lane_i++ ) {
             this.lanes[ lane_i ].buildDraw();
@@ -457,5 +461,56 @@ function Car( specs, color ) {
             this.t -= 1.0;
         }
         return this.newpos();
+    };
+}
+
+function Race( ctx, course, cars ) {
+    var that = this;
+    var DEFAULT_TIMEOUT = 200;
+    this.ctx = ctx;
+    this.course = course;
+    this.cars = cars === undefined ? [] : cars;
+    this.timer = undefined;
+
+    this.addCar = function( car ) {
+        this.cars.push( car );
+    };
+
+    this.placeCarAt = function( car, lane_nbr ) {
+        car.lane = this.course.getLaneAt( lane_nbr );
+    };
+
+    this.validate = function() {
+        return ( this.course && this.cars );
+    };
+
+    this.setup = function() {
+        if ( this.validate() ) {
+            this.course.draw();
+        }
+    };
+
+    this.moveCars= function() {
+        for ( var c_i = 0; c_i < this.cars.length; c_i++ ) {
+            var car = this.cars[ c_i ];
+            var pos = car.pos;
+            car.draw( this.ctx, pos.x, pos.y );
+        }
+    };
+
+    this.start = function( time ) {
+        if ( this.validate() ) {
+            this.timer = setInterval( function() {
+                that.course.clear();
+                that.course.draw();
+                that.moveCars();
+            }, time === undefined ? DEFAULT_TIMEOUT : time );
+        }
+    };
+
+    this.stop = function() {
+        if ( this.timer ) {
+            clearInterval( this.timer );
+        }
     };
 }
