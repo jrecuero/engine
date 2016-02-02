@@ -397,6 +397,58 @@ function Course( ctx ) {
     };
 }
 
+function CarSpecs() {
+    this.speed = { straight: 0, curve: 0, sharp: 0 };
+
+    this.setStraight = function( value ) {
+        this.speed.straight = value;
+    };
+
+    this.setCurve = function( value ) {
+        this.speed.curve = value;
+    };
+
+    this.setSharp = function( value ) {
+        this.speed.sharp = value;
+    };
+
+    this.getStraight = function() {
+        return this.speed.straight;
+    };
+
+    this.getCurve = function() {
+        return this.speed.curve;
+    };
+
+    this.getSharp = function() {
+        return this.speed.sharp;
+    };
+
+    this.set = function( straight, curve, sharp ) {
+        this.setStraight( straight );
+        this.setCurve( curve );
+        this.setSharp( sharp );
+    };
+
+    this.get = function( segment_type ) {
+        var segmentSpeed = o;
+        if ( segment_type === SEGMENT_TYPE.straight ) {
+            segmentSpeed = this.getStraight();
+        } else if ( segment_type === SEGMENT_TYPE.curve ) {
+            segmentSpeed = this.getCurve();
+        } else if ( segment_type === SEGMENT_TYPE.curve_sharp ) {
+            segmentSpeed = this.getSharp();
+        }
+        return segmentSpeed;
+    };
+
+    this.clear = function() {
+        this.setStraight( 0 );
+        this.setCurve( 0 );
+        this.setSharp( 0 );
+    };
+}
+
 function Car( specs, color ) {
     this.__lane = undefined;
     this.segment = 0;
