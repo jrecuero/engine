@@ -3,6 +3,13 @@ var CURVE = { FULL: 100, HALF: 50, QUARTER: 25 };
 var SHARP = { X: 'x', Y: 'y' };
 var UNIFIED_LENGTH = 2.0;
 
+/**
+ * Rotate a line defined for two points a given angle.
+ *
+ * @param  {Array} points Array with two points defining the line
+ * @param  {int} angle    Angle to rotate the line
+ * @return {Array} Array with two points defining the rotated line
+ */
 function rotate( points, angle ) {
     var startP = points[ 0 ];
     var endP = points[ 1 ];
@@ -17,6 +24,14 @@ function rotate( points, angle ) {
     return [ startP, result ];
 }
 
+/**
+ * Moves a line from an origin point to a destination point.
+ *
+ * @param  {Array} points   Array with points defining the line
+ * @param  {Point} origin_p Origin point
+ * @param  {Point} dest_p   Destination point
+ * @return {Array} Array with points defining the moved line
+ */
 function move( points, origin_p, dest_p ) {
     var movePoints = [];
     for ( var p_i in points ) {
@@ -27,11 +42,26 @@ function move( points, origin_p, dest_p ) {
     return movePoints;
 }
 
+/**
+ * Number of unified steps for the given length.
+ *
+ * @param  {int} length Curve length
+ * @return {int} Number of unified steps
+ */
 function getStepsFromLength( length ) {
     var steps = length / UNIFIED_LENGTH;
     return Math.round( steps );
 }
 
+/**
+ * Return start and end point for a line with a given length and angle.
+ *
+ * @param  {Point} start_p Start point
+ * @param  {Point} end_p   End point
+ * @param  {int} length    Line length
+ * @param  {int} angle     Line angle
+ * @return {Array} Array with start and end points for the result line
+ */
 function getPointsFromLine( start_p, end_p, length, angle ) {
     if ( !angle ) angle = 0;
     if ( !end_p ) end_p = Point( start_p.x + length, start_p.y );
@@ -40,6 +70,16 @@ function getPointsFromLine( start_p, end_p, length, angle ) {
     return [ start_p, endP ];
 }
 
+/**
+ * Draw a line in the given context
+ * @param  {Context} ctx    Context where line will be drawn
+ * @param  {Point} start_p  Line start point
+ * @param  {Point} end_p    Line end point
+ * @param  {int} length     Line length
+ * @param  {int} angle      Line angle
+ * @param  {int} resolution Resolution line will be drawn
+ * @return {Point} Last point for the line
+ */
 function drawLine( ctx, start_p, end_p, length, angle, resolution ) {
     var points = getPointsFromLine( start_p, end_p, length, angle );
     var startP = points[ 0 ];
@@ -66,6 +106,15 @@ function drawLine( ctx, start_p, end_p, length, angle, resolution ) {
 //     return endP;
 // }
 
+/**
+ * Return all points (three) for a curve for a given curve percentage.
+ *
+ * @param  {Point} start_p Start point
+ * @param  {Point} ctrl_p  Control point
+ * @param  {Point} end_p   End point
+ * @param  {int} percent   Percentage of curve to be used
+ * @return {Array} Array with all points (three) for the result curve
+ */
 function getPointsFromCurve( start_p, ctrl_p, end_p, percent ) {
     if ( percent === undefined ) percent = 100;
     var percentV = percent / 100;
@@ -88,6 +137,16 @@ function getPointsFromCurve( start_p, ctrl_p, end_p, percent ) {
     return [ start_p, midP, endP ];
 }
 
+/**
+ * Draw a curve in the given context
+ * @param  {Context} ctx    Context where curve will be drawn
+ * @param  {Point} start_p  Line start point
+ * @param  {Point} ctrl_p   Line control point
+ * @param  {Point} end_p    Line end point
+ * @param  {int} percent    Percentage of curve to be used
+ * @param  {int} resolution Resolution curve will be drawn
+ * @return {Point} Last point for the curve
+ */
 function drawCurve( ctx, start_p, ctrl_p, end_p, percent, resolution ) {
     ctx.moveTo( start_p.x, start_p.y );
     var points = getPointsFromCurve( start_p, ctrl_p, end_p, percent );
@@ -98,6 +157,15 @@ function drawCurve( ctx, start_p, ctrl_p, end_p, percent, resolution ) {
     return endP;
 }
 
+/**
+ * Return all points (three) for a sharp curve for a given sharpness.
+ *
+ * @param  {Point} start_p Start point
+ * @param  {Point} end_p   End point
+ * @param  {Side} side     Side to sharp
+ * @param  {int} sharpness Curve sharpness
+ * @return {Array} Array with all points (three) for the result sharp curve
+ */
 function getPointsFromSharpCurve( start_p, end_p, side, sharpness ) {
     var mid, midP, endP;
     if ( side === SHARP.X ) {
@@ -124,6 +192,16 @@ function getPointsFromSharpCurve( start_p, end_p, side, sharpness ) {
     return [ start_p, midP, endP ];
 }
 
+/**
+ * Draw a sharp curve in the given context
+ * @param  {Context} ctx    Context where curve will be drawn
+ * @param  {Point} start_p  Line start point
+ * @param  {Point} end_p    Line end point
+ * @param  {Side} side      Side to sharp
+ * @param  {int} sharpness  Curve sharpness
+ * @param  {int} resolution Resolution curve will be drawn
+ * @return {Point} Last point for the curve
+ */
 function drawSharpCurve( ctx, start_p, end_p, side, sharpness, resolution ) {
     ctx.moveTo( start_p.x, start_p.y );
     var points = getPointsFromSharpCurve( start_p, end_p, side, sharpness );
@@ -131,6 +209,14 @@ function drawSharpCurve( ctx, start_p, end_p, side, sharpness, resolution ) {
     return points[ 2 ];
 }
 
+/**
+ * Piece Straight class.
+ *
+ * @param  {Point} start_p Straight start point
+ * @param  {Point} end_p   Straight end point
+ * @param  {int} length    Straight length
+ * @param  {int} angle     Straight angle
+ */
 function st( start_p, end_p, length, angle ) {
     this.startP = start_p;
     if ( end_p ) {
@@ -176,6 +262,14 @@ function st( start_p, end_p, length, angle ) {
     };
 }
 
+/**
+ * Piece Curve class.
+ *
+ * @param  {Point} start_p    Curve start point
+ * @param  {Point} ctrl_p     Curve control point
+ * @param  {Point} end_p      Curve end point
+ * @param  {int} percentage   Percentage of curve to be used
+ */
 function cv( start_p, ctrl_p, end_p, percentage ) {
     this.startP = start_p;
     this.ctrlP = ctrl_p;
@@ -218,6 +312,14 @@ function cv( start_p, ctrl_p, end_p, percentage ) {
     };
 }
 
+/**
+ * Piece Sharp Curve class.
+ *
+ * @param  {Point} start_p   Sharp curve start point
+ * @param  {Point} end_p     Sharp curve end point
+ * @param  {Side} side       Side for the sharp curve
+ * @param  {int} sharpness   Curve sharpness
+ */
 function sh( start_p, end_p, side, sharpness ) {
     this.startP = start_p;
     this.endP = end_p;
@@ -260,6 +362,13 @@ function sh( start_p, end_p, side, sharpness ) {
     };
 }
 
+/**
+ * Piece class.
+ *
+ * Piece is a line/curve that is part for a full course.
+ *
+ * @param {Piece} piece Straight/Curve/Sharp Curve
+ */
 function Piece( piece ) {
     this.piece = piece;
 
@@ -288,17 +397,42 @@ function Piece( piece ) {
     };
 }
 
+/**
+ * Straight piece with a given length and angle.
+ *
+ * @param {Point} start_p Straight start point
+ * @param {Point} end_p   Straight end point
+ * @param {int} length    Straight length
+ * @param {int} angle     Straight angle
+ */
 function PieceStraight( start_p, end_p, length, angle ) {
     Piece.call( this, new st( start_p, end_p, length, angle ) );
 }
 PieceStraight.prototype = new Piece();
 PieceStraight.prototype.constructor = PieceStraight;
 
+/**
+ * Curve piece with a given percentage.
+ *
+ * @param {Point} start_p    Curve start point
+ * @param {Point} ctrl_p     Curve control point
+ * @param {Point} end_p      Curve end point
+ * @param {int} percentage   Percentage of curve to be used
+ */
 function PieceCurve( start_p, ctrl_p, end_p, percentage ) {
     Piece.call( this, new cv( start_p, ctrl_p, end_p, percentage ) );
 }
 PieceCurve.prototype = new Piece();
 PieceCurve.prototype.constructor = PieceCurve;
+
+/**
+ * Sharp Curve piece with a given percentage.
+ *
+ * @param {Point} start_p    Sharp curve start point
+ * @param {Point} end_p      Sharp curve end point
+ * @param {Side} side        Side for the sharp curve
+ * @param {int} sharpness    Sharpness for the sharp curve
+ */
 
 function PieceSharpCurve( start_p, end_p, side, sharpness ) {
     Piece.call( this, new sh( start_p, end_p, side, sharpness ) );
@@ -306,12 +440,23 @@ function PieceSharpCurve( start_p, end_p, side, sharpness ) {
 PieceSharpCurve.prototype = new Piece();
 PieceSharpCurve.prototype.constructor = PieceSharpCurve;
 
+/**
+ * Close a figure for the given end point.
+ *
+ * @param {Point} end_p End point to close
+ */
 function PieceClose( end_p ) {
     Piece.call( this, new st( undefined, end_p ) );
 }
 PieceClose.prototype = new Piece();
 PieceClose.prototype.constructor = PieceClose;
 
+/**
+ * Course Lane class.
+ *
+ * @param {Context} ctx    Context where course lane will be drawn
+ * @param {int} resolution Resolution for the course
+ */
 function CourseLane( ctx, resolution ) {
     this.ctx = ctx;
     this.resolution = resolution;
@@ -366,6 +511,11 @@ function CourseLane( ctx, resolution ) {
     };
 }
 
+/**
+ * Course class.
+ *
+ * @param {Context} ctx Context where course will be drawn
+ */
 function Course( ctx ) {
     this.ctx = ctx;
     this.lanes = [];
@@ -397,6 +547,9 @@ function Course( ctx ) {
     };
 }
 
+/**
+ * Car specifications class.
+ */
 function CarSpecs() {
     this.speed = { straight: 0, curve: 0, sharp: 0 };
 
@@ -430,7 +583,11 @@ function CarSpecs() {
         this.setSharp( sharp );
     };
 
-    this.get = function( segment_type ) {
+    this.get = function() {
+        return this.speed;
+    };
+
+    this.getSpeed = function( segment_type ) {
         var segmentSpeed = o;
         if ( segment_type === SEGMENT_TYPE.straight ) {
             segmentSpeed = this.getStraight();
@@ -449,6 +606,12 @@ function CarSpecs() {
     };
 }
 
+/**
+ * Car class.
+ *
+ * @param {CarSpecs} specs Car specifications
+ * @param {String} color Car color
+ */
 function Car( specs, color ) {
     this.__lane = undefined;
     this.segment = 0;
@@ -479,15 +642,7 @@ function Car( specs, color ) {
 
     this.speed = function() {
         var segmentType = this.lane.path[ this.segment ].type;
-        var segmentSpeed = 0;
-        if ( segmentType === SEGMENT_TYPE.straight ) {
-            segmentSpeed = this.specs.speed_s;
-        } else if ( segmentType === SEGMENT_TYPE.curve ) {
-            segmentSpeed = this.specs.speed_c;
-        } else {
-            segmentSpeed = this.specs.speed_d;
-        }
-        return segmentSpeed;
+        return this.specs.getSpeed( segmentType );
     };
 
     this.newpos = function() {
@@ -516,6 +671,13 @@ function Car( specs, color ) {
     };
 }
 
+/**
+ * Race class.
+ *
+ * @param {Context} ctx   Context where race course will be drawn
+ * @param {Course} course Course for the race
+ * @param {Array} cars    Array with all cars for the race
+ */
 function Race( ctx, course, cars ) {
     var that = this;
     var DEFAULT_TIMEOUT = 200;
