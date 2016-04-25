@@ -707,12 +707,13 @@ function Race( ctx, course, cars ) {
     this.moveCars= function() {
         for ( var c_i = 0; c_i < this.cars.length; c_i++ ) {
             var car = this.cars[ c_i ];
-            var pos = car.pos;
+            var pos = car.move();
             car.draw( this.ctx, pos.x, pos.y );
         }
     };
 
     this.start = function( time ) {
+        that.course.draw();
         if ( this.validate() ) {
             this.timer = setInterval( function() {
                 that.course.clear();
