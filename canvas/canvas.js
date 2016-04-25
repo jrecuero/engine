@@ -1,10 +1,10 @@
 var nbrCars = 4;
 var cars = [];
 var colors = [ "red", "blue", "green", "cyan", "yellow" ];
-var specs = [ { speed_s: 6, speed_c: 1, speed_d: 6 },
-              { speed_s: 5, speed_c: 2, speed_d: 2 },
-              { speed_s: 6, speed_c: 5, speed_d: 1 },
-              { speed_s: 4, speed_c: 6, speed_d: 5 } ];
+var specs = [ new CarSpecs( 6, 1, 6 ),
+              new CarSpecs( 5, 2, 2 ),
+              new CarSpecs( 6, 5, 1 ),
+              new CarSpecs( 4, 6, 5 ) ];
 
 function createVars( course ) {
     var index = 0;

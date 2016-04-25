@@ -550,8 +550,8 @@ function Course( ctx ) {
 /**
  * Car specifications class.
  */
-function CarSpecs() {
-    this.speed = { straight: 0, curve: 0, sharp: 0 };
+function CarSpecs(st, cv, sh) {
+    this.speed = { straight: st, curve: cv, sharp: sh };
 
     this.setStraight = function( value ) {
         this.speed.straight = value;
@@ -588,7 +588,7 @@ function CarSpecs() {
     };
 
     this.getSpeed = function( segment_type ) {
-        var segmentSpeed = o;
+        var segmentSpeed = 0;
         if ( segment_type === SEGMENT_TYPE.straight ) {
             segmentSpeed = this.getStraight();
         } else if ( segment_type === SEGMENT_TYPE.curve ) {
